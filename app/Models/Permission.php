@@ -10,13 +10,19 @@ class Permission extends Model
 {
     use HasFactory;
 
+    // Nama tabel yang terkait dengan model ini
+    protected $table = 'permissions';
+
+    // Kolom yang bisa diisi secara massal (mass assignable)
     protected $fillable = ['name'];
 
     /**
-     * The roles that belong to the permission.
+     * Mendefinisikan relasi Many-to-Many dengan model Role.
+     * Sebuah izin bisa dimiliki oleh banyak peran (roles).
      */
-    public function roles(): BelongsToMany
+    public function roles()
     {
-        return $this->belongsToMany(Role::class);
+        // Relasi many-to-many menggunakan tabel pivot 'permission_role'
+        return $this->belongsToMany(Role::class, 'permission_role', 'permission_id', 'role_id');
     }
 }

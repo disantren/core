@@ -1,56 +1,103 @@
-import { NavFooter } from '@/components/nav-footer';
-import { NavMain } from '@/components/nav-main';
-import { NavUser } from '@/components/nav-user';
-import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
-import { type NavItem } from '@/types';
-import { Link } from '@inertiajs/react';
-import { BookOpen, Folder, LayoutGrid } from 'lucide-react';
-import AppLogo from './app-logo';
+import { useState } from "react";
+import { Home, Settings, User, ChevronDown, ChevronRight } from "lucide-react";
 
-const mainNavItems: NavItem[] = [
-    {
-        title: 'Dashboard',
-        href: '/dashboard',
-        icon: LayoutGrid,
-    },
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+} from "@/components/ui/sidebar";
+
+const items = [
+  {
+    title: "App Setting",
+    url: "/dashboard/app-setting",
+    icon: Settings,
+  },
+  {
+    title: "Dashboard",
+    url: "/dashboard",
+    icon: Home,
+  },
+  {
+    title: "User Management",
+    url: "/dashboard/user-management",
+    icon: User,
+    children: [
+      {
+        title: "User List",
+        url: "/dashboard/user-management",
+      },
+      {
+        title: "Roles",
+        url: "/dashboard/user-management/roles",
+      },
+    ],
+  },
 ];
 
-const footerNavItems: NavItem[] = [
-    {
-        title: 'Repository',
-        href: 'https://github.com/laravel/react-starter-kit',
-        icon: Folder,
-    },
-    {
-        title: 'Documentation',
-        href: 'https://laravel.com/docs/starter-kits#react',
-        icon: BookOpen,
-    },
-];
+function CollapsibleMenuItem({ item }) {
+  const [open, setOpen] = useState(false);
+
+  const hasChildren = item.children && item.children.length > 0;
+
+  return (
+    <SidebarMenuItem>
+      <SidebarMenuButton asChild>
+        <div
+          className="flex items-center justify-between cursor-pointer"
+          onClick={() => hasChildren ? setOpen(!open) : null}
+        >
+          <a
+            href={item.url}
+            className="flex items-center gap-2 flex-1"
+            onClick={(e) => hasChildren && e.preventDefault()}
+          >
+            {item.icon && <item.icon className="w-4 h-4" />}
+            <span>{item.title}</span>
+          </a>
+          {hasChildren && (
+            <span>
+              {open ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+            </span>
+          )}
+        </div>
+      </SidebarMenuButton>
+
+      {hasChildren && open && (
+        <SidebarMenu className="ml-4">
+          {item.children.map((child) => (
+            <CollapsibleMenuItem key={child.title} item={child} />
+          ))}
+        </SidebarMenu>
+      )}
+    </SidebarMenuItem>
+  );
+}
+
+function RenderMenuItems({ items }) {
+  return items.map((item) => (
+    <CollapsibleMenuItem key={item.title} item={item} />
+  ));
+}
 
 export function AppSidebar() {
-    return (
-        <Sidebar collapsible="icon" variant="inset">
-            <SidebarHeader>
-                <SidebarMenu>
-                    <SidebarMenuItem>
-                        <SidebarMenuButton size="lg" asChild>
-                            <Link href="/dashboard" prefetch>
-                                <AppLogo />
-                            </Link>
-                        </SidebarMenuButton>
-                    </SidebarMenuItem>
-                </SidebarMenu>
-            </SidebarHeader>
-
-            <SidebarContent>
-                <NavMain items={mainNavItems} />
-            </SidebarContent>
-
-            <SidebarFooter>
-                <NavFooter items={footerNavItems} className="mt-auto" />
-                <NavUser />
-            </SidebarFooter>
-        </Sidebar>
-    );
+  return (
+    <Sidebar variant="inset">
+      <SidebarContent>
+        <SidebarGroup>
+          <SidebarGroupLabel>Application</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              <RenderMenuItems items={items} />
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      </SidebarContent>
+    </Sidebar>
+  );
 }

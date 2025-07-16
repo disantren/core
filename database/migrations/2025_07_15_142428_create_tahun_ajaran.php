@@ -8,10 +8,10 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('tahun_ajarans', function (Blueprint $table) {
-            $table->id(); // Gue ganti `tahun_ajaran_id` jadi `id`
+        Schema::create('tahun_ajaran', function (Blueprint $table) {
+            $table->id();
             $table->string('nama_tahun_ajaran');
-            $table->timestamps(); // Opsional, tapi sangat disarankan
+            $table->timestamps();
         });
     }
 
