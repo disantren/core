@@ -21,6 +21,7 @@ Route::prefix('dashboard')->group(function () {
     Route::get('/user-management', UserManagementController::class)->name('user-management');
     
     Route::post('/user-management', [UserManagementController::class, "create_user"])->name('user-management.create_user');
+    Route::patch('/user-management', [UserManagementController::class, "update_user"])->name('user-management.edit_user');
     
     Route::get('/user-management/roles', [UserManagementController::class, "Role"])->name('user-management.role');
     Route::post('/user-management/roles', [UserManagementController::class, "create_role"])->name('user-management.create_role');

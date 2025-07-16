@@ -6,7 +6,9 @@ use App\Models\Permission;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 
 class UserManagementController extends Controller
@@ -97,6 +99,45 @@ class UserManagementController extends Controller
         ]);
     }
 
+    public function update_user(Request $request) // Parameter User $user dihilangkan
+    {
+        $rules = [
+            'id' => 'required|integer|exists:users,id', // Validasi bahwa ID user harus ada dan valid
+            'name' => 'required|string|max:255',
+            'email' => [
+                'required',
+                'string',
+                'email',
+                'max:255',
+        ],
+            'role_id' => 'required|integer|exists:roles,id',
+        ];
+
+        $validatedData = $request->validate($rules);
+
+        $user = User::find($validatedData['id']);
+
+        $rules['email'][] = Rule::unique('users')->ignore($user->id);
+        $validatedData = $request->validate($rules);
+
+        if (!$user) {
+            return back()->withErrors(['user' => 'User not found.'])->withInput();
+        }
+        $updateData = [
+            'name' => $validatedData['name'],
+            'email' => $validatedData['email'],
+            'role_id' => $validatedData['role_id'],
+        ];
+
+        if (isset($validatedData['password']) && !empty($validatedData['password'])) {
+            $updateData['password'] = Hash::make($validatedData['password']);
+        }
+
+        $user->update($updateData);
+
+        return back()->with('success', 'User updated successfully!');
+    }
+
     public function create_role(Request $request)
     {
         $request->validate([
@@ -107,7 +148,6 @@ class UserManagementController extends Controller
         $roles_list = Role::with("permissions")->get();
         $permissions_list = Permission::all();
 
-        // Permission berbentuk array yang berisi id permission
         $role = Role::create([
             "name" => $request->name,
         ]);

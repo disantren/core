@@ -47,72 +47,159 @@ import { MoreHorizontal, Search, UserPlus, FilePenLine, Trash2 } from "lucide-re
 import { useEffect, useState } from "react";
 import DashboardLayout from "@/layouts/Dashboard/dashboard-layout";
 import { router, usePage } from "@inertiajs/react";
-import { User } from "@/types";
+import { User } from "@/types"; // Assuming User type is defined here
 import { toast } from "sonner";
+
+// Define the Role interface as it's used but not provided
+interface Role {
+    id: number;
+    name: string;
+    // Add other role properties if they exist, e.g., description: string;
+}
 
 // --- MAIN COMPONENT ---
 export default function UserManagementPage() {
-
+    // Get props from Inertia, including users, roles, and errors
     const { props } = usePage();
-    const { errors } = props;
-
-    const [users, setUsers] = useState<User[]>(props.users as User[]);
+    // Cast props.users and props.roles to their respective types
+    const initialUsers: User[] = props.users as User[];
     const roles_list: Role[] = props.roles as Role[];
 
+    // State for managing the list of users displayed in the table
+    const [users, setUsers] = useState<User[]>(initialUsers);
+
+    // State for search and filter functionality
     const [searchTerm, setSearchTerm] = useState("");
     const [roleFilter, setRoleFilter] = useState("all");
 
-    const [isFormOpen, setIsFormOpen] = useState(false);
-    const [isAlertOpen, setIsAlertOpen] = useState(false);
+    // States for controlling dialog visibility
+    const [isFormOpen, setIsFormOpen] = useState(false); // For Add/Edit User Dialog
+    const [isAlertOpen, setIsAlertOpen] = useState(false); // For Delete Confirmation Dialog
 
+    // State to hold the user currently being edited or deleted
     const [currentUser, setCurrentUser] = useState<User | null>(null);
 
+    // Effect to update the users list when props.users changes (e.g., after Inertia refresh)
+    useEffect(() => {
+        setUsers(initialUsers);
+    }, [initialUsers]);
+
+    // Handler for opening the "Add New User" form
     const handleAddNew = () => {
-        setCurrentUser(null); // Clear user to signify a new entry
+        setCurrentUser(null); // Clear currentUser to indicate a new user creation
         setIsFormOpen(true);
     };
 
+    // Handler for opening the "Edit User" form
     const handleEdit = (user: User) => {
-        setCurrentUser(user);
+        setCurrentUser(user); // Set the user to be edited
         setIsFormOpen(true);
     };
 
+    // Handler for opening the "Delete Confirmation" dialog
     const handleDelete = (user: User) => {
-        setCurrentUser(user);
+        setCurrentUser(user); // Set the user to be deleted
         setIsAlertOpen(true);
     };
 
-    const handleSaveUser = (userData: User) => {
-
-
-        console.log(userData)
-        // @ts-expect-error type error
+    // Handler for creating a new user
+    const handleCreateUser = (userData: User) => {
         router.post(route('user-management.create_user'), userData, {
             onSuccess: () => {
                 toast.success("User created successfully", {
                     position: "top-right",
                 });
+                // Inertia will automatically re-fetch props.users, which updates the 'users' state via useEffect
             },
-            onError: () => {
-                toast.error(errors.name, {
+            onError: (errors) => {
+                // Display all validation errors or a generic error message
+                const errorMessage = Object.values(errors).flat().join(', ') || "Failed to create user.";
+                toast.error(errorMessage, {
                     position: "top-right",
                     style: {
                         background: "red",
                         color: "white",
                     },
                 });
-            }
+            },
+            preserveScroll: true, // Keep scroll position after form submission
         });
-
-        setIsFormOpen(false);
+        setIsFormOpen(false); // Close the form dialog
     };
 
+    // Handler for updating an existing user
+    const handleEditUser = (userData: User) => {
+        if (!currentUser || !currentUser.id) {
+            toast.error("User ID is missing for update.", { position: "top-right", style: { background: "red", color: "white" } });
+            return;
+        }
+
+        console.log(userData);
+
+
+        router.patch(route('user-management.edit_user', { user: currentUser.id }), userData, {
+            onSuccess: () => {
+                toast.success("User updated successfully", {
+                    position: "top-right",
+                });
+                // Inertia will automatically re-fetch props.users, which updates the 'users' state via useEffect
+            },
+            onError: (errors) => {
+                // Display all validation errors or a generic error message
+                const errorMessage = Object.values(errors).flat().join(', ') || "Failed to update user.";
+                toast.error(errorMessage, {
+                    position: "top-right",
+                    style: {
+                        background: "red",
+                        color: "white",
+                    },
+                });
+            },
+            preserveScroll: true, // Keep scroll position after form submission
+        });
+        setIsFormOpen(false); // Close the form dialog
+    };
+
+    // Handler for confirming and executing user deletion
     const handleConfirmDelete = () => {
-        if (!currentUser) return;
-        setUsers(users.filter(u => u.id !== currentUser.id));
-        setIsAlertOpen(false);
+        if (!currentUser || !currentUser.id) {
+            toast.error("No user selected for deletion.", { position: "top-right", style: { background: "red", color: "white" } });
+            return;
+        }
+
+        // Send a DELETE request to the backend
+        router.delete(route('user-management.destroy_user', { user: currentUser.id }), {
+            onSuccess: () => {
+                toast.success("User deleted successfully", {
+                    position: "top-right",
+                });
+                // Filter the user from the local state for immediate UI update
+                setUsers(prevUsers => prevUsers.filter(u => u.id !== currentUser.id));
+            },
+            onError: (errors) => {
+                const errorMessage = Object.values(errors).flat().join(', ') || "Failed to delete user.";
+                toast.error(errorMessage, {
+                    position: "top-right",
+                    style: {
+                        background: "red",
+                        color: "white",
+                    },
+                });
+            },
+            preserveScroll: true,
+        });
+        setIsAlertOpen(false); // Close the confirmation dialog
     };
 
+    // Filtered users based on search term and role filter
+    const filteredUsers = users.filter((user) => {
+        const matchesSearch =
+            user.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            user.email?.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesRole =
+            roleFilter === "all" || user.role?.name.toLowerCase() === roleFilter.toLowerCase();
+        return matchesSearch && matchesRole;
+    });
 
     return (
         <DashboardLayout>
@@ -164,8 +251,8 @@ export default function UserManagementPage() {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {users.length > 0 ? (
-                                    users.map((user) => (
+                                {filteredUsers.length > 0 ? (
+                                    filteredUsers.map((user) => (
                                         <TableRow key={user.id} className="hover:bg-gray-50">
                                             <TableCell>
                                                 <div className="font-medium text-gray-800">{user.name}</div>
@@ -216,9 +303,10 @@ export default function UserManagementPage() {
                 <UserFormDialog
                     isOpen={isFormOpen}
                     setIsOpen={setIsFormOpen}
-                    user={currentUser}
+                    user={currentUser} // Pass the user object for editing, or null for new
                     roles={roles_list}
-                    onSave={handleSaveUser}
+                    onSave={handleCreateUser} // Handler for creating new user
+                    onEdit={handleEditUser}   // Handler for editing existing user
                 />
 
                 {/* Delete Confirmation Dialog */}
@@ -235,40 +323,59 @@ export default function UserManagementPage() {
 
 // --- DIALOG COMPONENTS ---
 
-function UserFormDialog({ isOpen, setIsOpen, user, roles, onSave }: { isOpen: boolean, setIsOpen: (open: boolean) => void, user: User | null, roles: Role[], onSave: (userData: User) => void }) {
+// UserFormDialog component for adding and editing users
+function UserFormDialog({ isOpen, setIsOpen, user, roles, onSave, onEdit }: { isOpen: boolean, setIsOpen: (open: boolean) => void, user: User | null, roles: Role[], onSave: (userData: User) => void, onEdit: (userData: User) => void }) {
+    // State for form fields
     const [name, setName] = useState<string | undefined>();
     const [email, setEmail] = useState<string | undefined>();
     const [password, setPassword] = useState<string | undefined>();
-    const [assignedRoleId, setAssignedRoleId] = useState<number | string>();
+    const [assignedRoleId, setAssignedRoleId] = useState<number | string | undefined>();
 
-    // Effect to populate form when a user is selected for editing or clear for new user
+    // Effect to populate form fields when 'user' prop changes (for editing)
+    // or to clear fields when 'isOpen' is true and 'user' is null (for new user)
     useEffect(() => {
         if (isOpen) {
             if (user) {
+                // If user object is provided, populate form for editing
                 setName(user.name);
                 setEmail(user.email);
-                setAssignedRoleId(user?.role_id);
-                setPassword('');
+                setAssignedRoleId(user.role_id);
+                setPassword(''); // Password field is cleared for security, user can set new
             } else {
+                // If no user object, clear form for new user creation
                 setName("");
                 setEmail("");
                 setPassword("");
                 setAssignedRoleId("");
             }
         }
-    }, [user, isOpen]);
+    }, [user, isOpen]); // Re-run when user or isOpen changes
 
+    // Handler for form submission (both create and edit)
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+
+        // Create a userData object from form states
         const userData: User = {
-            name,
-            email,
-            role_id: assignedRoleId as number,
+            name: name!, // Assert as non-null since inputs are required
+            email: email!,
+            role_id: assignedRoleId as number, // Cast to number
         };
+
+        // Only include password if it's provided (for new user or if user wants to change password)
         if (password) {
             userData.password = password;
         }
-        onSave(userData);
+
+        // Determine whether to call onEdit or onSave based on 'user' prop existence
+        if (user) {
+            // If 'user' exists, it's an edit operation, add the user's ID
+            userData.id = user.id;
+            onEdit(userData);
+        } else {
+            // If 'user' is null, it's a new user creation
+            onSave(userData);
+        }
     };
 
     return (
@@ -292,7 +399,8 @@ function UserFormDialog({ isOpen, setIsOpen, user, roles, onSave }: { isOpen: bo
                         </div>
                         <div className="grid grid-cols-4 items-center gap-4">
                             <Label htmlFor="password" className="text-right">Password</Label>
-                            <Input id="password" type="password" onChange={e => setPassword(e.target.value)} placeholder={user ? "Leave blank to keep current" : "Required"} className="col-span-3" required={!user} />
+                            {/* Password is required for new users, optional for existing */}
+                            <Input id="password" type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder={user ? "Leave blank to keep current" : "Required"} className="col-span-3" required={!user} />
                         </div>
                         <div className="grid grid-cols-4 items-center gap-4">
                             <Label htmlFor="role" className="text-right">Role</Label>
@@ -320,6 +428,7 @@ function UserFormDialog({ isOpen, setIsOpen, user, roles, onSave }: { isOpen: bo
     );
 }
 
+// DeleteConfirmationDialog component for confirming user deletion
 function DeleteConfirmationDialog({ isOpen, setIsOpen, onConfirm }: { isOpen: boolean, setIsOpen: (open: boolean) => void, onConfirm: React.MouseEventHandler<HTMLButtonElement> | undefined }) {
     return (
         <AlertDialog open={isOpen} onOpenChange={setIsOpen}>
