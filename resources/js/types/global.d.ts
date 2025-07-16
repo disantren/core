@@ -29,4 +29,6 @@ declare global {
         updated_at: string;
         permissions: Permission[];
       }
+
+      
 }

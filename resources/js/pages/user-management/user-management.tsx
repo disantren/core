@@ -12,6 +12,7 @@ import {
     DropdownMenuItem,
     DropdownMenuLabel,
     DropdownMenuTrigger,
+    DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import {
     Dialog,
@@ -31,12 +32,9 @@ import {
     AlertDialogFooter,
     AlertDialogHeader,
     AlertDialogTitle,
-    AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import {
     Select,
@@ -44,122 +42,69 @@ import {
     SelectItem,
     SelectTrigger,
     SelectValue,
-} from "@/components/ui/select"
+} from "@/components/ui/select";
 import { MoreHorizontal, Search, UserPlus, FilePenLine, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import DashboardLayout from "@/layouts/Dashboard/dashboard-layout";
 import { usePage } from "@inertiajs/react";
+import { User } from "@/types";
 
-// --- MOCK DATA ---
-// Simulating your database tables
-
-const allRoles = [
-    { id: 1, name: "Admin" },
-    { id: 2, name: "Editor" },
-    { id: 3, name: "Viewer" },
-    { id: 4, name: "Content Manager" },
-];
-
-const initialUsers = [
-    {
-        id: 1,
-        name: "Anya Forger",
-        email: "anya.forger@eden.edu",
-        created_at: "2023-01-15T10:00:00Z",
-        roleIds: [1, 3], // Corresponds to role_user table
-    },
-    {
-        id: 2,
-        name: "Loid Forger",
-        email: "loid.forger@wise.org",
-        created_at: "2023-02-20T11:30:00Z",
-        roleIds: [1],
-    },
-    {
-        id: 3,
-        name: "Yor Forger",
-        email: "yor.forger@garden.org",
-        created_at: "2023-03-10T09:00:00Z",
-        roleIds: [2],
-    },
-    {
-        id: 4,
-        name: "Damian Desmond",
-        email: "damian.desmond@eden.edu",
-        created_at: "2023-04-05T14:20:00Z",
-        roleIds: [3],
-    },
-    {
-        id: 5,
-        name: "Franky Franklin",
-        email: "franky.franklin@info.net",
-        created_at: "2023-05-01T18:00:00Z",
-        roleIds: [4, 3],
-    },
-];
-
-// --- HELPER FUNCTION ---
-const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-    });
-};
 
 // --- MAIN COMPONENT ---
 export default function UserManagementPage() {
 
-    const { props } = usePage()
+    // In a real Inertia app, 'props' would be reactive.
+    // For this example, we manage state locally to show functionality.
+    const { props } = usePage();
+    const [users, setUsers] = useState<User[]>(props.users as User[]);
+    const roles_list: Role[] = props.roles as Role[];
 
-    const [users, setUsers] = useState(initialUsers);
     const [searchTerm, setSearchTerm] = useState("");
     const [roleFilter, setRoleFilter] = useState("all");
+
+    // State for controlling dialogs
     const [isFormOpen, setIsFormOpen] = useState(false);
-    const [currentUser, setCurrentUser] = useState(null);
+    const [isAlertOpen, setIsAlertOpen] = useState(false);
 
-    // --- Filtering Logic ---
-    const filteredUsers = users
-        .filter((user) =>
-            user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            user.email.toLowerCase().includes(searchTerm.toLowerCase())
-        )
-        .filter((user) => {
-            if (roleFilter === "all") return true;
-            const role = allRoles.find(r => r.name === roleFilter);
-            return user.roleIds.includes(role.id);
-        });
+    // State for the user being edited or deleted
+    const [currentUser, setCurrentUser] = useState<User | null>(null);
 
-    // --- Event Handlers ---
     const handleAddNew = () => {
-        setCurrentUser(null); // Clear current user to indicate it's a new entry
+        setCurrentUser(null); // Clear user to signify a new entry
         setIsFormOpen(true);
     };
 
-    const handleEdit = (user) => {
+    const handleEdit = (user: User) => {
         setCurrentUser(user);
         setIsFormOpen(true);
     };
 
-    const handleDelete = (userId) => {
-        setUsers(users.filter((user) => user.id !== userId));
+    const handleDelete = (user: User) => {
+        setCurrentUser(user);
+        setIsAlertOpen(true);
     };
 
-    const handleSaveUser = (userData) => {
+    const handleSaveUser = (userData: User) => {
+        console.log("Saving user:", userData);
+
         if (currentUser) {
-            // Editing existing user
-            setUsers(users.map(u => u.id === currentUser.id ? { ...u, ...userData } : u));
+            setUsers(users.map(u => u.id === currentUser.id ? { ...u, ...userData, role: roles_list.find(r => r.id === userData.roleId) } : u));
         } else {
-            // Adding new user
-            const newUser = {
-                id: Math.max(...users.map(u => u.id)) + 1, // simple ID generation
-                ...userData,
-                created_at: new Date().toISOString(),
-            };
+            const newUser = { ...userData, id: Date.now(), role: roles_list.find(r => r.id === userData.roleId) };
             setUsers([...users, newUser]);
         }
         setIsFormOpen(false);
     };
+
+    const handleConfirmDelete = () => {
+        if (!currentUser) return;
+        console.log("Deleting user:", currentUser);
+
+        setUsers(users.filter(u => u.id !== currentUser.id));
+        setIsAlertOpen(false);
+    };
+
+
 
     return (
         <DashboardLayout>
@@ -189,7 +134,7 @@ export default function UserManagementPage() {
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="all">All Roles</SelectItem>
-                                    {allRoles.map(role => (
+                                    {roles_list.map(role => (
                                         <SelectItem key={role.id} value={role.name}>{role.name}</SelectItem>
                                     ))}
                                 </SelectContent>
@@ -201,33 +146,28 @@ export default function UserManagementPage() {
                     </div>
 
                     {/* User Table */}
-                    <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+                    <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
                         <Table>
                             <TableHeader>
-                                <TableRow className="bg-gray-50">
+                                <TableRow className="bg-gray-50 hover:bg-gray-100">
                                     <TableHead className="w-[35%]">User</TableHead>
-                                    <TableHead className="w-[30%]">Roles</TableHead>
-                                    <TableHead>Joined On</TableHead>
+                                    <TableHead className="w-[30%]">Role</TableHead>
                                     <TableHead className="text-right">Actions</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {filteredUsers.length > 0 ? (
-                                    filteredUsers.map((user) => (
-                                        <TableRow key={user.id}>
+                                {users.length > 0 ? (
+                                    users.map((user) => (
+                                        <TableRow key={user.id} className="hover:bg-gray-50">
                                             <TableCell>
                                                 <div className="font-medium text-gray-800">{user.name}</div>
                                                 <div className="text-sm text-gray-500">{user.email}</div>
                                             </TableCell>
                                             <TableCell>
-                                                <div className="flex flex-wrap gap-2">
-                                                    {user.roleIds.map((roleId) => {
-                                                        const role = allRoles.find((r) => r.id === roleId);
-                                                        return role ? <Badge key={role.id} variant="secondary">{role.name}</Badge> : null;
-                                                    })}
-                                                </div>
+                                                <span className="px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800">
+                                                    {user.role?.name}
+                                                </span>
                                             </TableCell>
-                                            <TableCell className="text-gray-600">{formatDate(user.created_at)}</TableCell>
                                             <TableCell className="text-right">
                                                 <DropdownMenu>
                                                     <DropdownMenuTrigger asChild>
@@ -242,30 +182,11 @@ export default function UserManagementPage() {
                                                             <FilePenLine className="mr-2 h-4 w-4" />
                                                             <span>Edit</span>
                                                         </DropdownMenuItem>
-
-                                                        <AlertDialog>
-                                                            <AlertDialogTrigger asChild>
-                                                                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                                                                    <Trash2 className="mr-2 h-4 w-4 text-red-500" />
-                                                                    <span className="text-red-500">Delete</span>
-                                                                </DropdownMenuItem>
-                                                            </AlertDialogTrigger>
-                                                            <AlertDialogContent>
-                                                                <AlertDialogHeader>
-                                                                    <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                                                                    <AlertDialogDescription>
-                                                                        This action cannot be undone. This will permanently delete the user account for <span className="font-semibold">{user.name}</span>.
-                                                                    </AlertDialogDescription>
-                                                                </AlertDialogHeader>
-                                                                <AlertDialogFooter>
-                                                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                                                    <AlertDialogAction onClick={() => handleDelete(user.id)} className="bg-red-600 hover:bg-red-700">
-                                                                        Yes, delete user
-                                                                    </AlertDialogAction>
-                                                                </AlertDialogFooter>
-                                                            </AlertDialogContent>
-                                                        </AlertDialog>
-
+                                                        <DropdownMenuSeparator />
+                                                        <DropdownMenuItem className="text-red-600 focus:text-red-600 focus:bg-red-50" onClick={() => handleDelete(user)}>
+                                                            <Trash2 className="mr-2 h-4 w-4" />
+                                                            <span>Delete</span>
+                                                        </DropdownMenuItem>
                                                     </DropdownMenuContent>
                                                 </DropdownMenu>
                                             </TableCell>
@@ -273,7 +194,7 @@ export default function UserManagementPage() {
                                     ))
                                 ) : (
                                     <TableRow>
-                                        <TableCell colSpan={4} className="h-24 text-center text-gray-500">
+                                        <TableCell colSpan={3} className="h-24 text-center text-gray-500">
                                             No users found.
                                         </TableCell>
                                     </TableRow>
@@ -288,54 +209,56 @@ export default function UserManagementPage() {
                     isOpen={isFormOpen}
                     setIsOpen={setIsFormOpen}
                     user={currentUser}
+                    roles={roles_list}
                     onSave={handleSaveUser}
+                />
+
+                {/* Delete Confirmation Dialog */}
+                <DeleteConfirmationDialog
+                    isOpen={isAlertOpen}
+                    setIsOpen={setIsAlertOpen}
+                    onConfirm={handleConfirmDelete}
                 />
             </div>
         </DashboardLayout>
     );
 }
 
-function UserFormDialog({ isOpen, setIsOpen, user, onSave }) {
-    const [name, setName] = useState('');
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [assignedRoles, setAssignedRoles] = useState(new Set());
 
-    useEffect(() => {
-        if (user) {
-            setName(user.name);
-            setEmail(user.email);
-            setPassword(''); // Don't pre-fill password for security
-            setAssignedRoles(new Set(user.roleIds));
-        } else {
-            // Reset form for new user
-            setName('');
-            setEmail('');
-            setPassword('');
-            setAssignedRoles(new Set());
+// --- DIALOG COMPONENTS ---
+
+function UserFormDialog({ isOpen, setIsOpen, user, roles, onSave }: { isOpen: boolean, setIsOpen: (open: boolean) => void, user: User | null, roles: Role[], onSave: (userData: User) => void }) {
+    const [name, setName] = useState<string | undefined>();
+    const [email, setEmail] = useState<string | undefined>();
+    const [password, setPassword] = useState<string | undefined>();
+    const [assignedRoleId, setAssignedRoleId] = useState<number | string>();
+
+    // Effect to populate form when a user is selected for editing or clear for new user
+    useEffect(() => {   
+        if (isOpen) {
+            if (user) {
+                setName(user.name);
+                setEmail(user.email);
+                setAssignedRoleId(user?.role_id);
+                setPassword('');
+            } else {
+                setName("");
+                setEmail("");
+                setPassword("");
+                setAssignedRoleId("");
+            }
         }
-    }, [user, isOpen]); // Rerun effect when user or dialog open state changes
+    }, [user, isOpen]);
 
-    const handleRoleChange = (roleId) => {
-        const newRoles = new Set(assignedRoles);
-        if (newRoles.has(roleId)) {
-            newRoles.delete(roleId);
-        } else {
-            newRoles.add(roleId);
-        }
-        setAssignedRoles(newRoles);
-    };
-
-    const handleSubmit = (e) => {
+    const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        const userData = {
+        const userData: User = {
             name,
             email,
-            roleIds: Array.from(assignedRoles),
+            role_id: assignedRoleId as number,
         };
-        // Only include password if it's been entered
         if (password) {
-            userData.password = password; // In a real app, you'd hash this
+            userData.password = password;
         }
         onSave(userData);
     };
@@ -347,10 +270,10 @@ function UserFormDialog({ isOpen, setIsOpen, user, onSave }) {
                     <DialogHeader>
                         <DialogTitle>{user ? 'Edit User' : 'Add New User'}</DialogTitle>
                         <DialogDescription>
-                            {user ? 'Update the user details below.' : 'Fill in the details to create a new user.'}
+                            {user ? 'Update the user details and their role.' : 'Fill in the details to create a new user.'}
                         </DialogDescription>
                     </DialogHeader>
-                    <div className="grid gap-4 py-6">
+                    <div className="grid gap-6 py-6">
                         <div className="grid grid-cols-4 items-center gap-4">
                             <Label htmlFor="name" className="text-right">Name</Label>
                             <Input id="name" value={name} onChange={e => setName(e.target.value)} className="col-span-3" required />
@@ -361,27 +284,20 @@ function UserFormDialog({ isOpen, setIsOpen, user, onSave }) {
                         </div>
                         <div className="grid grid-cols-4 items-center gap-4">
                             <Label htmlFor="password" className="text-right">Password</Label>
-                            <Input id="password" type="password" placeholder={user ? "Leave blank to keep current" : "Required"} className="col-span-3" required={!user} />
+                            <Input id="password" type="password" onChange={e => setPassword(e.target.value)} placeholder={user ? "Leave blank to keep current" : "Required"} className="col-span-3" required={!user} />
                         </div>
-                        <div className="grid grid-cols-4 items-start gap-4">
-                            <Label className="text-right pt-2">Roles</Label>
-                            <div className="col-span-3 grid grid-cols-2 gap-4">
-                                {allRoles.map(role => (
-                                    <div key={role.id} className="flex items-center space-x-2">
-                                        <Checkbox
-                                            id={`role-${role.id}`}
-                                            checked={assignedRoles.has(role.id)}
-                                            onCheckedChange={() => handleRoleChange(role.id)}
-                                        />
-                                        <label
-                                            htmlFor={`role-${role.id}`}
-                                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                                        >
-                                            {role.name}
-                                        </label>
-                                    </div>
-                                ))}
-                            </div>
+                        <div className="grid grid-cols-4 items-center gap-4">
+                            <Label htmlFor="role" className="text-right">Role</Label>
+                            <Select value={String(assignedRoleId)} onValueChange={(value) => setAssignedRoleId(Number(value))}>
+                                <SelectTrigger className="col-span-3">
+                                    <SelectValue placeholder="Select a role" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {roles.map(role => (
+                                        <SelectItem key={role.id} value={String(role.id)}>{role.name}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
                         </div>
                     </div>
                     <DialogFooter>
@@ -393,5 +309,26 @@ function UserFormDialog({ isOpen, setIsOpen, user, onSave }) {
                 </form>
             </DialogContent>
         </Dialog>
+    );
+}
+
+function DeleteConfirmationDialog({ isOpen, setIsOpen, onConfirm }: { isOpen: boolean, setIsOpen: (open: boolean) => void, onConfirm: React.MouseEventHandler<HTMLButtonElement> | undefined }) {
+    return (
+        <AlertDialog open={isOpen} onOpenChange={setIsOpen}>
+            <AlertDialogContent>
+                <AlertDialogHeader>
+                    <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                        This action cannot be undone. This will permanently delete the user account and remove their data from our servers.
+                    </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={onConfirm} className="bg-red-600 hover:bg-red-700">
+                        Yes, delete user
+                    </AlertDialogAction>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
     );
 }

@@ -10,18 +10,22 @@ use Inertia\Inertia;
 
 class UserManagementController extends Controller
 {
-    public function __invoke(){
+    public function __invoke()
+    {
 
 
 
-        $users_list = User::with("roles")->get();
+        $users_list = User::with("role")->get();
+        $roles_list = Role::all();
 
         return Inertia::render("user-management/user-management", [
             "users" => $users_list,
+            "roles" => $roles_list,
         ]);
     }
 
-    public function Role(){
+    public function Role()
+    {
 
 
         $roles_list = Role::with("permissions")->get();
@@ -33,11 +37,13 @@ class UserManagementController extends Controller
         ]);
     }
 
-    public function Permission(){
+    public function Permission()
+    {
         return Inertia::render("user-management/permission-management");
     }
 
-    public function create_user(Request $request){
+    public function create_user(Request $request)
+    {
         $request->validate([
             "name" => "required",
             "email" => "required|email",
@@ -46,9 +52,9 @@ class UserManagementController extends Controller
         ]);
 
         $user = User::create([
-            "name"=> $request->name,
-            "email"=> $request->email,
-            "password"=> bcrypt($request->password),
+            "name" => $request->name,
+            "email" => $request->email,
+            "password" => bcrypt($request->password),
         ]);
 
         $user->roles()->attach($request->role_id);
@@ -58,7 +64,8 @@ class UserManagementController extends Controller
         ]);
     }
 
-    public function create_role(Request $request){
+    public function create_role(Request $request)
+    {
         $request->validate([
             "name" => "required",
             "permissions" => "required",
@@ -69,7 +76,7 @@ class UserManagementController extends Controller
 
         // Permission berbentuk array yang berisi id permission
         $role = Role::create([
-            "name"=> $request->name,
+            "name" => $request->name,
         ]);
 
         $role->permissions()->attach($request->permissions);
@@ -79,18 +86,19 @@ class UserManagementController extends Controller
             "permissions" => $permissions_list,
         ]);
     }
-    public function edit_role(Request $request){
+    public function edit_role(Request $request)
+    {
         $request->validate([
             "role_id" => "required",
             "name" => "required",
-            "permissions"=> "required",
+            "permissions" => "required",
         ]);
 
         $roles_list = Role::with("permissions")->get();
         $permissions_list = Permission::all();
         $role = Role::find($request->role_id);
         $role->update([
-            "name"=> $request->name,
+            "name" => $request->name,
         ]);
 
 
