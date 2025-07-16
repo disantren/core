@@ -49,9 +49,6 @@ function AppSetting({ data }: { data: AppSettingsProps }) {
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
 
-        console.log(formData.linkedin);
-
-
         router.post('/dashboard/app-setting/update', {
             nama_pondok_pesantren: formData.nama_pondok_pesantren,
             logo_img: logoFile,
@@ -62,7 +59,9 @@ function AppSetting({ data }: { data: AppSettingsProps }) {
             linkedin: formData.linkedin,
         }, {
             onSuccess: () => {
-                toast.success('Data berhasil disimpan!');
+                toast.success('Data berhasil disimpan!', {
+                    position: "top-right",
+                });
             }
         });
     };
@@ -160,7 +159,7 @@ function AppSetting({ data }: { data: AppSettingsProps }) {
                                     <Input
                                         id="website"
                                         name="website"
-                                        type="url"
+                                        type="text"
                                         value={formData.website}
                                         onChange={handleInputChange}
                                         placeholder="https://websiteanda.com"
@@ -182,7 +181,7 @@ function AppSetting({ data }: { data: AppSettingsProps }) {
                                     <Input
                                         id="instagram"
                                         name="instagram"
-                                        type="url"
+                                        type="text"
                                         value={formData.instagram}
                                         onChange={handleInputChange}
                                         placeholder="https://instagram.com/username"
@@ -204,7 +203,7 @@ function AppSetting({ data }: { data: AppSettingsProps }) {
                                     <Input
                                         id="facebook"
                                         name="facebook"
-                                        type="url"
+                                        type="text"
                                         value={formData.facebook}
                                         onChange={handleInputChange}
                                         placeholder="https://facebook.com/username"
@@ -226,7 +225,7 @@ function AppSetting({ data }: { data: AppSettingsProps }) {
                                     <Input
                                         id="linkedin"
                                         name="linkedin"
-                                        type="url"
+                                        type="text"
                                         value={formData.linkedin}
                                         onChange={handleInputChange}
                                         placeholder="https://linkedin.com/company/..."

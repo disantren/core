@@ -25,31 +25,28 @@ class AppSettingController extends Controller
         ]);
     }
 
-      public function update(Request $request)
+    public function update(Request $request)
     {
         $rule_validation = [
             'nama_pondok_pesantren' => 'required|string|max:255',
-            'logo_img' => 'image|mimes:jpeg,png,jpg,gif,svg',
-            'alamat' => 'nullable|string',
-            'instagram' => 'nullable|string',
-            'facebook' => 'nullable|string',
-            'website' => 'nullable|string',
-            'linkedin' => 'nullable|string',
+            'alamat' => 'string',
+            'instagram' => 'string',
+            'facebook' => 'string',
+            'website' => 'string',
+            'linkedin' => 'string',
         ];
 
-        if($request->hasFile('logo_img')){
+        if ($request->hasFile('logo_img')) {
             $rule_validation['logo_img'] = 'required|image|mimes:jpeg,png,jpg,gif,svg';
         }
 
         $request->validate($rule_validation);
 
+        Log::info($request->all());
 
         $data = AppSetting::find(1);
-        if (!$data) {
-            $data = new AppSetting();
-        }
-        
-        if($request->hasFile('logo_img')){
+
+        if ($request->hasFile('logo_img')) {
             $file = $request->file('logo_img');
             $path = $file->store('app', 'public');
             if ($path) {
@@ -59,8 +56,14 @@ class AppSettingController extends Controller
                 return redirect()->back()->withErrors(['logo_img' => 'Gagal mengunggah gambar logo. Mohon coba lagi.']);
             }
         }
-        
-        $data->fill($request->except('logo_img'));
+
+
+        $data->nama_pondok_pesantren = $request->nama_pondok_pesantren;
+        $data->alamat = $request->alamat;
+        $data->instagram = $request->instagram;
+        $data->facebook = $request->facebook;
+        $data->website = $request->website;
+        $data->linkedin = $request->linkedin;
         $data->save();
         return redirect()->back()->with('success', 'Pengaturan berhasil diperbarui.');
     }
