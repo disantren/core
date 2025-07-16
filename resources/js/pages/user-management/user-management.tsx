@@ -47,72 +47,52 @@ import { MoreHorizontal, Search, UserPlus, FilePenLine, Trash2 } from "lucide-re
 import { useEffect, useState } from "react";
 import DashboardLayout from "@/layouts/Dashboard/dashboard-layout";
 import { router, usePage } from "@inertiajs/react";
-import { User } from "@/types"; // Assuming User type is defined here
 import { toast } from "sonner";
+import { User } from "@/types";
 
-// Define the Role interface as it's used but not provided
-interface Role {
-    id: number;
-    name: string;
-    // Add other role properties if they exist, e.g., description: string;
-}
 
 // --- MAIN COMPONENT ---
 export default function UserManagementPage() {
-    // Get props from Inertia, including users, roles, and errors
     const { props } = usePage();
-    // Cast props.users and props.roles to their respective types
     const initialUsers: User[] = props.users as User[];
     const roles_list: Role[] = props.roles as Role[];
 
-    // State for managing the list of users displayed in the table
     const [users, setUsers] = useState<User[]>(initialUsers);
 
-    // State for search and filter functionality
     const [searchTerm, setSearchTerm] = useState("");
     const [roleFilter, setRoleFilter] = useState("all");
 
-    // States for controlling dialog visibility
-    const [isFormOpen, setIsFormOpen] = useState(false); // For Add/Edit User Dialog
-    const [isAlertOpen, setIsAlertOpen] = useState(false); // For Delete Confirmation Dialog
+    const [isFormOpen, setIsFormOpen] = useState(false);
+    const [isAlertOpen, setIsAlertOpen] = useState(false);
 
-    // State to hold the user currently being edited or deleted
     const [currentUser, setCurrentUser] = useState<User | null>(null);
 
-    // Effect to update the users list when props.users changes (e.g., after Inertia refresh)
     useEffect(() => {
         setUsers(initialUsers);
     }, [initialUsers]);
 
-    // Handler for opening the "Add New User" form
     const handleAddNew = () => {
-        setCurrentUser(null); // Clear currentUser to indicate a new user creation
+        setCurrentUser(null);
         setIsFormOpen(true);
     };
-
-    // Handler for opening the "Edit User" form
     const handleEdit = (user: User) => {
-        setCurrentUser(user); // Set the user to be edited
+        setCurrentUser(user); 
         setIsFormOpen(true);
     };
 
-    // Handler for opening the "Delete Confirmation" dialog
     const handleDelete = (user: User) => {
-        setCurrentUser(user); // Set the user to be deleted
+        setCurrentUser(user); 
         setIsAlertOpen(true);
     };
 
-    // Handler for creating a new user
     const handleCreateUser = (userData: User) => {
         router.post(route('user-management.create_user'), userData, {
             onSuccess: () => {
                 toast.success("User created successfully", {
                     position: "top-right",
                 });
-                // Inertia will automatically re-fetch props.users, which updates the 'users' state via useEffect
             },
             onError: (errors) => {
-                // Display all validation errors or a generic error message
                 const errorMessage = Object.values(errors).flat().join(', ') || "Failed to create user.";
                 toast.error(errorMessage, {
                     position: "top-right",
@@ -122,12 +102,10 @@ export default function UserManagementPage() {
                     },
                 });
             },
-            preserveScroll: true, // Keep scroll position after form submission
+            preserveScroll: true, 
         });
-        setIsFormOpen(false); // Close the form dialog
+        setIsFormOpen(false); 
     };
-
-    // Handler for updating an existing user
     const handleEditUser = (userData: User) => {
         if (!currentUser || !currentUser.id) {
             toast.error("User ID is missing for update.", { position: "top-right", style: { background: "red", color: "white" } });
@@ -160,7 +138,6 @@ export default function UserManagementPage() {
         setIsFormOpen(false); // Close the form dialog
     };
 
-    // Handler for confirming and executing user deletion
     const handleConfirmDelete = () => {
         if (!currentUser || !currentUser.id) {
             toast.error("No user selected for deletion.", { position: "top-right", style: { background: "red", color: "white" } });
@@ -188,10 +165,9 @@ export default function UserManagementPage() {
             },
             preserveScroll: true,
         });
-        setIsAlertOpen(false); // Close the confirmation dialog
+        setIsAlertOpen(false); 
     };
 
-    // Filtered users based on search term and role filter
     const filteredUsers = users.filter((user) => {
         const matchesSearch =
             user.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
