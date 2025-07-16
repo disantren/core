@@ -46,27 +46,25 @@ import {
 import { MoreHorizontal, Search, UserPlus, FilePenLine, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import DashboardLayout from "@/layouts/Dashboard/dashboard-layout";
-import { usePage } from "@inertiajs/react";
+import { router, usePage } from "@inertiajs/react";
 import { User } from "@/types";
-
+import { toast } from "sonner";
 
 // --- MAIN COMPONENT ---
 export default function UserManagementPage() {
 
-    // In a real Inertia app, 'props' would be reactive.
-    // For this example, we manage state locally to show functionality.
     const { props } = usePage();
+    const { errors } = props;
+
     const [users, setUsers] = useState<User[]>(props.users as User[]);
     const roles_list: Role[] = props.roles as Role[];
 
     const [searchTerm, setSearchTerm] = useState("");
     const [roleFilter, setRoleFilter] = useState("all");
 
-    // State for controlling dialogs
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [isAlertOpen, setIsAlertOpen] = useState(false);
 
-    // State for the user being edited or deleted
     const [currentUser, setCurrentUser] = useState<User | null>(null);
 
     const handleAddNew = () => {
@@ -85,25 +83,35 @@ export default function UserManagementPage() {
     };
 
     const handleSaveUser = (userData: User) => {
-        console.log("Saving user:", userData);
 
-        if (currentUser) {
-            setUsers(users.map(u => u.id === currentUser.id ? { ...u, ...userData, role: roles_list.find(r => r.id === userData.roleId) } : u));
-        } else {
-            const newUser = { ...userData, id: Date.now(), role: roles_list.find(r => r.id === userData.roleId) };
-            setUsers([...users, newUser]);
-        }
+
+        console.log(userData)
+        // @ts-expect-error type error
+        router.post(route('user-management.create_user'), userData, {
+            onSuccess: () => {
+                toast.success("User created successfully", {
+                    position: "top-right",
+                });
+            },
+            onError: () => {
+                toast.error(errors.name, {
+                    position: "top-right",
+                    style: {
+                        background: "red",
+                        color: "white",
+                    },
+                });
+            }
+        });
+
         setIsFormOpen(false);
     };
 
     const handleConfirmDelete = () => {
         if (!currentUser) return;
-        console.log("Deleting user:", currentUser);
-
         setUsers(users.filter(u => u.id !== currentUser.id));
         setIsAlertOpen(false);
     };
-
 
 
     return (
@@ -234,7 +242,7 @@ function UserFormDialog({ isOpen, setIsOpen, user, roles, onSave }: { isOpen: bo
     const [assignedRoleId, setAssignedRoleId] = useState<number | string>();
 
     // Effect to populate form when a user is selected for editing or clear for new user
-    useEffect(() => {   
+    useEffect(() => {
         if (isOpen) {
             if (user) {
                 setName(user.name);

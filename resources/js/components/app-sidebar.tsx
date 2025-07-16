@@ -14,14 +14,14 @@ import {
 
 const items = [
   {
-    title: "App Setting",
-    url: "/dashboard/app-setting",
-    icon: Settings,
-  },
-  {
     title: "Dashboard",
     url: "/dashboard",
     icon: Home,
+  },
+  {
+    title: "App Setting",
+    url: "/dashboard/app-setting",
+    icon: Settings,
   },
   {
     title: "User Management",
@@ -35,6 +35,10 @@ const items = [
       {
         title: "Roles",
         url: "/dashboard/user-management/roles",
+      },
+      {
+        title: "Permission",
+        url: "/dashboard/user-management/permissions",
       },
     ],
   },

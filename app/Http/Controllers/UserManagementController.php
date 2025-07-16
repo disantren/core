@@ -6,6 +6,7 @@ use App\Models\Permission;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 
 class UserManagementController extends Controller
@@ -39,8 +40,43 @@ class UserManagementController extends Controller
 
     public function Permission()
     {
-        return Inertia::render("user-management/permission-management");
+
+        $permissions_list = Permission::all();
+
+        return Inertia::render(
+            "user-management/permission-management",
+            [
+                "permissions" => $permissions_list,
+            ]
+        );
     }
+
+    public function create_permission(Request $request)
+    {
+        $request->validate([
+            "name" => "required|unique:permissions,name",
+        ]);
+
+        $permission = Permission::create([
+            "name" => $request->name,
+        ]);
+
+        return redirect()->route("user-management.permission")->with("success", "");
+    }
+
+    public function edit_permission(Request $request)
+    {
+        $request->validate([
+            "permission_id" => "required",
+            "name" => "required",
+        ]);
+
+        $permission = Permission::find($request->permission_id);
+        $permission->update([
+            "name" => $request->name,
+        ]);
+    }
+
 
     public function create_user(Request $request)
     {
@@ -51,16 +87,13 @@ class UserManagementController extends Controller
             "role_id" => "required",
         ]);
 
-        $user = User::create([
+        Log::info($request->all());
+
+        User::create([
+            "role_id" => $request->role_id,
             "name" => $request->name,
             "email" => $request->email,
             "password" => bcrypt($request->password),
-        ]);
-
-        $user->roles()->attach($request->role_id);
-
-        return Inertia::render("user-management/create-user", [
-            "user" => $user,
         ]);
     }
 

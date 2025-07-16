@@ -56,10 +56,6 @@ export default function RoleManagement() {
     const [roleData, setRoleData] = useState({ role_id: 0, name: '', permissions: [] as number[] });
     const [searchTerm, setSearchTerm] = useState('');
 
-
-    // --- EVENT HANDLERS ---
-
-    // Open create modal with empty form
     const handleCreate = () => {
         setRoleData({ role_id: 0, name: '', permissions: [] });
         setIsCreateModalOpen(true);
@@ -76,13 +72,6 @@ export default function RoleManagement() {
         setIsEditModalOpen(true);
     };
 
-    // Open delete confirmation dialog
-    // const handleDelete = (role: Role) => {
-    //     setSelectedRole(role);
-    //     setIsDeleteAlertOpen(true);
-    // };
-
-    // Handle form input changes
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setRoleData({ ...roleData, name: e.target.value });
     };
@@ -118,8 +107,6 @@ export default function RoleManagement() {
         });
         setIsEditModalOpen(false); // Close modal on submit
     };
-
-    // Confirm and execute delete action
 
     // Filter roles based on search term
     const filteredRoles = roles.filter(role =>

@@ -19,8 +19,9 @@ Route::prefix('dashboard')->group(function () {
     Route::post('/app-setting/update', [AppSettingController::class, 'update'])->name('app-setting.update');
 
     Route::get('/user-management', UserManagementController::class)->name('user-management');
-
-
+    
+    Route::post('/user-management', [UserManagementController::class, "create_user"])->name('user-management.create_user');
+    
     Route::get('/user-management/roles', [UserManagementController::class, "Role"])->name('user-management.role');
     Route::post('/user-management/roles', [UserManagementController::class, "create_role"])->name('user-management.create_role');
     Route::patch('/user-management/roles', [UserManagementController::class, "edit_role"])->name('user-management.edit_role');
@@ -28,6 +29,9 @@ Route::prefix('dashboard')->group(function () {
 
     Route::get('/user-management/permissions', [UserManagementController::class, "Permission"])->name('user-management.permission');
     Route::post('/user-management/permissions', [UserManagementController::class, "create_permission"])->name('user-management.create_permission');
+    Route::patch('/user-management/permissions', [UserManagementController::class, "edit_permission"])->name('user-management.edit_permission');
+
+
 });
 
 
