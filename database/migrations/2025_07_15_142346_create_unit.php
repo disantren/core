@@ -12,6 +12,7 @@ return new class extends Migration
             $table->id(); // Gue ganti `unit_id` jadi `id` biar standar
             $table->string('nama_unit');
             $table->timestamps(); // Opsional, tapi sangat disarankan
+            $table->softDeletes();
         });
     }
 

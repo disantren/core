@@ -8,22 +8,12 @@ use Illuminate\Database\Seeder;
 
 class AppSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
-
-    // $table->id();
-    //         $table->string('nama_pondok_pesantren')->nullable();
-    //         $table->string('logo_img')->nullable();
-    //         $table->text('alamat')->nullable();
-    //         $table->string('instagram')->nullable();
-    //         $table->string('facebook')->nullable();
-    //         $table->string('website')->nullable();
-    //         $table->string('linkedin')->nullable();
-
 
     public function run(): void
     {
+
+        AppSetting::truncate();
+
         AppSetting::insert([
             'id' => 1,
             'nama_pondok_pesantren' => 'Pondok Pesantren Al-Falah',

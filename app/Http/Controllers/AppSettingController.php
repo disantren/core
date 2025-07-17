@@ -77,5 +77,27 @@ class AppSettingController extends Controller
         ]);
     }
 
-    
+    public function create_unit(Request $request){
+        $request->validate([
+            'nama_unit' => 'required|string|max:255',
+        ]);
+
+        $data = new Unit();
+        $data->nama_unit = $request->nama_unit;
+        $data->save();
+        return redirect()->back()->with('success', 'Unit berhasil dibuat.');
+    }
+
+    public function update_unit(Request $request){
+        $request->validate([
+            'id' => 'required|numeric',
+            'nama_unit' => 'required|string|max:255',
+        ]);
+
+        $data = Unit::find($request->id);
+        $data->nama_unit = $request->nama_unit;
+        $data->save();
+        return redirect()->back()->with('success', 'Unit berhasil diperbarui.');
+    }
+
 }

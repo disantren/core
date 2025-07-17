@@ -7,10 +7,11 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Santri extends Authenticatable
 {
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, SoftDeletes;
     
     
     // Nama tabelnya gue specify biar jelas

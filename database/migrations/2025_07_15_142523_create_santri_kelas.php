@@ -14,7 +14,8 @@ return new class extends Migration
             $table->foreignId('santri_id')->constrained('santris');
             $table->foreignId('tahun_ajaran_id')->constrained('tahun_ajaran');
             $table->timestamps();
-        });
+            $table->softDeletes();
+        }); 
     }
 
     public function down(): void

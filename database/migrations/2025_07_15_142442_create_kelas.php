@@ -13,6 +13,7 @@ return new class extends Migration
             $table->foreignId('unit_id')->constrained('units');
             $table->string('nama_kelas');
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

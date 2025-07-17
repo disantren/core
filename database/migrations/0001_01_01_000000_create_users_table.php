@@ -17,12 +17,14 @@ return new class extends Migration
             $table->id();
             $table->string('name')->unique();
             $table->timestamps();
+            $table->softDeletes();
         });
 
         Schema::create('permissions', function (Blueprint $table) {
             $table->id();
             $table->string('name')->unique();
             $table->timestamps();
+            $table->softDeletes();
         });
 
         Schema::create('permission_role', function (Blueprint $table) {
@@ -40,6 +42,7 @@ return new class extends Migration
             $table->string('password');
             $table->rememberToken();
             $table->timestamps();
+            $table->softDeletes();
             $table->foreign('role_id')->references('id')->on('roles');
         });
 

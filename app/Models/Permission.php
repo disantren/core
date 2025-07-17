@@ -5,15 +5,14 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Permission extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
-    // Nama tabel yang terkait dengan model ini
     protected $table = 'permissions';
 
-    // Kolom yang bisa diisi secara massal (mass assignable)
     protected $fillable = ['name'];
 
     /**

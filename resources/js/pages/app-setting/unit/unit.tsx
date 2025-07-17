@@ -6,23 +6,71 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
+
 import {
     DropdownMenu,
-    DropdownMenuTrigger
+    DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-import { Button } from "@/components/ui/button";
-import { MoreHorizontal} from "lucide-react";
-import DashboardLayout from '@/layouts/Dashboard/dashboard-layout';
-import { usePage } from "@inertiajs/react";
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogFooter,
+} from "@/components/ui/dialog";
 
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { PenLine } from "lucide-react";
+import DashboardLayout from '@/layouts/Dashboard/dashboard-layout';
+import { router, usePage } from "@inertiajs/react";
+import { useState } from "react";
+import { toast } from "sonner";
 
 export default function RoleManagement() {
+    const props = usePage();
+    const { units }: { units: Array<Unit> } = props.props as unknown as { units: Array<Unit> };
 
-    const props = usePage()
+    const [open, setOpen] = useState(false);
+    const [form, setForm] = useState({ id: 0, nama_unit: "" });
 
-    const { units }: { units: Array<Unit> } = props.props as unknown as { units: Array<Unit> }
+    const handleOpenCreate = () => {
+        setForm({ id: 0, nama_unit: "" });
+        setOpen(true);
+    };
 
+    const handleOpenEdit = (unit: Unit) => {
+        setForm(unit);
+        setOpen(true);
+    };
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setForm({ ...form, [e.target.name]: e.target.value });
+    };
+
+    const handleSubmit = () => {
+        if (form.id) {
+            // Simulasikan update
+
+            router.patch(route('app-setting.unit.update'), form, {
+                onSuccess: () => {
+                    toast.success('Unit berhasil diupdate', {
+                        position: "top-right",
+                    });
+                }
+            });
+        } else {
+            router.post(route('app-setting.unit.create'), form, {
+                onSuccess: () => {
+                    toast.success('Unit berhasil dibuat', {
+                        position: "top-right",
+                    });
+                }
+            });    
+        }
+        setOpen(false);
+    };
 
     return (
         <DashboardLayout>
@@ -32,6 +80,10 @@ export default function RoleManagement() {
                         <h1 className="text-3xl font-bold text-gray-800">Units Management</h1>
                         <p className="text-gray-500 mt-1">Atur units untuk pondok pesantren</p>
                     </header>
+
+                    <div className="mb-4 flex justify-end">
+                        <Button onClick={handleOpenCreate}>Tambah Unit</Button>
+                    </div>
 
                     <div className="bg-white rounded-lg shadow-sm border border-gray-200">
                         <Table>
@@ -51,9 +103,13 @@ export default function RoleManagement() {
                                             <TableCell className="text-right">
                                                 <DropdownMenu>
                                                     <DropdownMenuTrigger asChild>
-                                                        <Button variant="ghost" className="h-8 w-8 p-0">
+                                                        <Button
+                                                            variant="ghost"
+                                                            className="h-8 w-8 p-0"
+                                                            onClick={() => handleOpenEdit(unit)}
+                                                        >
                                                             <span className="sr-only">Buka menu</span>
-                                                            <MoreHorizontal className="h-4 w-4" />
+                                                            <PenLine className="h-4 w-4" />
                                                         </Button>
                                                     </DropdownMenuTrigger>
                                                 </DropdownMenu>
@@ -72,6 +128,25 @@ export default function RoleManagement() {
                     </div>
                 </div>
             </div>
+
+            <Dialog open={open} onOpenChange={setOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>{form.id ? "Edit Unit" : "Tambah Unit"}</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                        <Input
+                            name="nama_unit"
+                            placeholder="Nama unit"
+                            value={form.nama_unit}
+                            onChange={handleChange}
+                        />
+                    </div>
+                    <DialogFooter>
+                        <Button onClick={handleSubmit}>{form.id ? "Update" : "Simpan"}</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </DashboardLayout>
     );
 }

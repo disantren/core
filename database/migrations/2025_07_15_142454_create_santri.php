@@ -24,6 +24,7 @@ return new class extends Migration
             $table->string('no_hp_orang_tua')->nullable();
             $table->text('password'); // Biasanya password di-hash jadi string(255), tapi text juga oke
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

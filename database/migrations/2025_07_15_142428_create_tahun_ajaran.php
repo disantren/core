@@ -12,6 +12,7 @@ return new class extends Migration
             $table->id();
             $table->string('nama_tahun_ajaran');
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 
