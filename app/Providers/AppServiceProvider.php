@@ -2,7 +2,9 @@
 
 namespace App\Providers;
 
+use App\Models\AppSetting;
 use Illuminate\Support\ServiceProvider;
+use Inertia\Inertia;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -19,6 +21,13 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        $app_setting = AppSetting::find(1);
+        if (!$app_setting) {
+            $app_setting = new AppSetting();
+            $app_setting->save();
+        }
+
+
+        Inertia::share("app_setting", $app_setting);
     }
 }

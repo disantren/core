@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\AppSetting;
+use App\Models\Unit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -67,4 +68,14 @@ class AppSettingController extends Controller
         $data->save();
         return redirect()->back()->with('success', 'Pengaturan berhasil diperbarui.');
     }
+
+    public function unit(){
+        $data = Unit::all();
+
+        return Inertia::render('app-setting/unit/unit', [
+            'units' => $data,
+        ]);
+    }
+
+    
 }

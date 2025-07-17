@@ -16,6 +16,8 @@ Route::prefix('dashboard')->group(function () {
     Route::get('/', DashboardController::class);
 
     Route::get('/app-setting', AppSettingController::class)->name('app-setting');
+    Route::get('/app-setting/unit', [AppSettingController::class, 'unit'])->name('app-setting.unit');
+
     Route::post('/app-setting/update', [AppSettingController::class, 'update'])->name('app-setting.update');
 
     Route::get('/user-management', UserManagementController::class)->name('user-management');

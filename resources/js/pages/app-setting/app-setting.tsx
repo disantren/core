@@ -82,7 +82,7 @@ function AppSetting({ data }: { data: AppSettingsProps }) {
                     <div className="space-y-6">
                         {/* Nama Pondok Pesantren */}
                         <div className="space-y-2">
-                            <Label htmlFor="nama_pondok_pesantren">Nama Pondok Pesantren</Label>
+                            <Label htmlFor="nama_pondok_pesantren">Nama Lembaga</Label>
                             <Input
                                 id="nama_pondok_pesantren"
                                 name="nama_pondok_pesantren"

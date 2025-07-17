@@ -36,4 +36,32 @@ declare global {
         updated_at: string;
         permissions: Permission[];
     }
+
+    interface PondokPesantren {
+        nama_pondok_pesantren: string;
+        logo_img: string;
+        alamat: string;
+        instagram: string;
+        facebook: string;
+        website: string;
+        linkedin: string;
+        created_at: string | null;
+        updated_at: string;
+    }
+
+    interface Unit {
+        id: number;
+        nama_unit: string;
+        created_at: string;
+        updated_at: string;
+    }
+
+    import { LucideIcon } from 'lucide-react';
+
+    interface MenuItem {
+        title: string;
+        url?: string; 
+        icon?: LucideIcon; 
+        children?: MenuItem[]; 
+      }
 }

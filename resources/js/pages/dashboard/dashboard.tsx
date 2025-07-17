@@ -1,6 +1,13 @@
 import DashboardLayout from "@/layouts/Dashboard/dashboard-layout";
+import { usePage } from "@inertiajs/react";
 
 function Dashboard() {
+
+    const {props} = usePage()
+
+    console.log(props)
+
+
     return ( 
 
         <DashboardLayout>
