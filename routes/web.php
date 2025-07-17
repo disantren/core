@@ -3,6 +3,7 @@
 use App\Http\Controllers\AppSettingController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\UserManagementController;
+use App\Http\Controllers\kelasController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -35,8 +36,11 @@ Route::prefix('dashboard')->group(function () {
     Route::get('/user-management/permissions', [UserManagementController::class, "Permission"])->name('user-management.permission');
     Route::post('/user-management/permissions', [UserManagementController::class, "create_permission"])->name('user-management.create_permission');
     Route::patch('/user-management/permissions', [UserManagementController::class, "edit_permission"])->name('user-management.edit_permission');
-
-
+    
+    
+    Route::get('/kelas', kelasController::class)->name('kelas');
+    Route::post('/kelas', [kelasController::class, "create"])->name('kelas.create');
+    Route::patch('/kelas', [kelasController::class, "update"])->name('kelas.edit');
 });
 
 

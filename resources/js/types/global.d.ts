@@ -62,6 +62,15 @@ declare global {
         title: string;
         url?: string; 
         icon?: LucideIcon; 
-        children?: MenuItem[]; 
+        children?: MenuItem[];
+      }      
+      interface Kelas {
+        id: number;
+        unit_id: number;
+        nama_kelas: string;
+        created_at?: string | null;
+        updated_at?: string | null;
+        deleted_at?: string | null;
+        unit?: Unit;
       }
 }

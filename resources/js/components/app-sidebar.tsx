@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Home, Settings, User, ChevronDown, ChevronRight } from "lucide-react";
+import { Home, Settings, User, ChevronDown, ChevronRight, Building } from "lucide-react";
 
 import {
   Sidebar,
@@ -20,6 +20,16 @@ const items: MenuItem[] = [
     title: "Dashboard",
     url: "/dashboard",
     icon: Home,
+  },
+  {
+    title: "Sarana Prasarana",
+    icon: Building,
+    children: [
+      {
+        title: "Kelas",
+        url: "/dashboard/kelas"
+      },
+    ]
   },
   {
     title: "Pengaturan",
