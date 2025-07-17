@@ -12,14 +12,15 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Santri extends Authenticatable
 {
     use HasFactory, Notifiable, SoftDeletes;
-    
-    
+
+
     // Nama tabelnya gue specify biar jelas
     protected $table = 'santris';
 
     protected $fillable = [
         'unit_id',
         'kelas_id',
+        'kamar_id',
         'status',
         'nama',
         'tanggal_lahir',
@@ -38,6 +39,11 @@ class Santri extends Authenticatable
     public function unit(): BelongsTo
     {
         return $this->belongsTo(Unit::class);
+    }
+
+    public function kamar(): BelongsTo
+    {
+        return $this->belongsTo(Kamar::class);
     }
 
     /**
