@@ -75,7 +75,6 @@ export default function ClassManagement() {
         setOpen(false);
     };
 
-
     const handleDelete = (id: number) => {
         router.delete(route('kelas.delete', id), {
             onSuccess: () => {
