@@ -45,6 +45,6 @@ class kelasController extends Controller
             "unit_id"=> $request->unit_id,
         ]);
 
-        return redirect()->route("kelas");
+        return redirect()->route("kelas");      
     }
 }

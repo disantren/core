@@ -60,11 +60,11 @@ declare global {
 
     interface MenuItem {
         title: string;
-        url?: string; 
-        icon?: LucideIcon; 
+        url?: string;
+        icon?: LucideIcon;
         children?: MenuItem[];
-      }      
-      interface Kelas {
+    }
+    interface Kelas {
         id: number;
         unit_id: number;
         nama_kelas: string;
@@ -72,5 +72,12 @@ declare global {
         updated_at?: string | null;
         deleted_at?: string | null;
         unit?: Unit;
-      }
+    }
+
+    interface Kamar {
+        id: number;
+        nama_kamar: string;
+        created_at: string | null;
+        updated_at: string | null;
+    }
 }

@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AppSettingController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\kamarController;
 use App\Http\Controllers\UserManagementController;
 use App\Http\Controllers\kelasController;
 use Illuminate\Support\Facades\Route;
@@ -41,6 +42,10 @@ Route::prefix('dashboard')->group(function () {
     Route::get('/kelas', kelasController::class)->name('kelas');
     Route::post('/kelas', [kelasController::class, "create"])->name('kelas.create');
     Route::patch('/kelas', [kelasController::class, "update"])->name('kelas.edit');
+
+    Route::get('/kamar', kamarController::class)->name('kamar');
+    Route::post('/kamar', [kamarController::class, "create"])->name('kamar.create');
+    Route::patch('/kamar', [kamarController::class, "update"])->name('kamar.edit');
 });
 
 

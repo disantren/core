@@ -29,6 +29,10 @@ const items: MenuItem[] = [
         title: "Kelas",
         url: "/dashboard/kelas"
       },
+      {
+        title: "Kamar", 
+        url: "/dashboard/kamar"
+      }
     ]
   },
   {
