@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -45,6 +45,16 @@ function AppSetting({ data }: { data: AppSettingsProps }) {
             setLogoPreview(URL.createObjectURL(file));
         }
     };
+
+    useEffect(() => {
+        const errors = props.errors
+        const error_key = Object.keys(errors)
+        error_key.forEach(key => {
+            toast.error(errors[key], {
+                position: "top-right",
+            })
+        })
+    }, [props]) 
 
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();

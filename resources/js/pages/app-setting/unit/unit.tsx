@@ -25,15 +25,26 @@ import { Button } from "@/components/ui/button";
 import { PenLine } from "lucide-react";
 import DashboardLayout from '@/layouts/Dashboard/dashboard-layout';
 import { router, usePage } from "@inertiajs/react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 export default function RoleManagement() {
-    const props = usePage();
+    const { props } = usePage();
     const { units }: { units: Array<Unit> } = props.props as unknown as { units: Array<Unit> };
 
     const [open, setOpen] = useState(false);
     const [form, setForm] = useState({ id: 0, nama_unit: "" });
+
+
+    useEffect(() => {
+        const errors = props.errors
+        const error_key = Object.keys(errors)
+        error_key.forEach(key => {
+            toast.error(errors[key], {
+                position: "top-right",
+            })
+        })
+    }, [props])
 
     const handleOpenCreate = () => {
         setForm({ id: 0, nama_unit: "" });

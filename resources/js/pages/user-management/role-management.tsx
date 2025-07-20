@@ -29,7 +29,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { MoreHorizontal, ShieldPlus, Search, FilePenLine } from "lucide-react";
 import DashboardLayout from '@/layouts/Dashboard/dashboard-layout';
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { router, usePage } from "@inertiajs/react";
 import { toast } from "sonner";
 
@@ -55,6 +55,19 @@ export default function RoleManagement() {
     const [selectedRole, setSelectedRole] = useState<Role | null>(null);
     const [roleData, setRoleData] = useState({ role_id: 0, name: '', permissions: [] as number[] });
     const [searchTerm, setSearchTerm] = useState('');
+
+
+    useEffect(() => {
+        const errors = props.errors
+        const error_key = Object.keys(errors)
+        error_key.forEach(key => {
+            toast.error(errors[key], {
+                position: "top-right",
+            })
+        })
+    }, [props])
+
+
 
     const handleCreate = () => {
         setRoleData({ role_id: 0, name: '', permissions: [] });
@@ -99,11 +112,14 @@ export default function RoleManagement() {
         console.log(`Updating role ${selectedRole?.id}:`, roleData);
 
         router.patch(route('user-management.edit_role'), roleData, {
-            onSuccess: ()=>{
+            onSuccess: () => {
                 toast.success("Role updated successfully", {
                     position: "top-right",
                 });
-            }
+            },
+            onError: (e) => {
+                console.log(e)
+            },
         });
         setIsEditModalOpen(false); // Close modal on submit
     };

@@ -18,7 +18,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import DashboardLayout from '@/layouts/Dashboard/dashboard-layout'
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { usePage } from "@inertiajs/react"
 import { router } from "@inertiajs/react"
 import { toast } from "sonner"
@@ -32,6 +32,17 @@ export default function RoomManagement() {
     const [rooms, setRooms] = useState(kamar)
     const [open, setOpen] = useState(false)
     const [form, setForm] = useState({ id: 0, nama_kamar: "" })
+
+
+    useEffect(() => {
+        const errors = props.errors
+        const error_key = Object.keys(errors)
+        error_key.forEach(key => {
+            toast.error(errors[key], {
+                position: "top-right",
+            })
+        })
+    }, [props])
 
     const handleOpenCreate = () => {
         setForm({ id: 0, nama_kamar: "" })

@@ -67,6 +67,17 @@ export default function UserManagementPage() {
 
     const [currentUser, setCurrentUser] = useState<User | null>(null);
 
+
+    useEffect(() => {
+        const errors = props.errors
+        const error_key = Object.keys(errors)
+        error_key.forEach(key => {
+            toast.error(errors[key], {
+                position: "top-right",
+            })
+        })
+    }, [props])
+
     useEffect(() => {
         setUsers(initialUsers);
     }, [initialUsers]);

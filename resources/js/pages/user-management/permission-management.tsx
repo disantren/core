@@ -27,7 +27,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { MoreHorizontal, ShieldPlus, Search, FilePenLine } from "lucide-react";
 import DashboardLayout from '@/layouts/Dashboard/dashboard-layout';
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { router, usePage } from "@inertiajs/react";
 import { toast } from "sonner";
 
@@ -49,6 +49,17 @@ export default function RoleManagement() {
         setPermissionData({ permission_id: 0, name: '', permissions: [] });
         setIsCreateModalOpen(true);
     };
+
+    useEffect(() => {
+        const errors = props.errors
+        const error_key = Object.keys(errors)
+        error_key.forEach(key => {
+            toast.error(errors[key], {
+                position: "top-right",
+            })
+        })
+    }, [props])
+
 
     const handleEdit = (permission: Permission) => {
         setSelectedPermission(permission);

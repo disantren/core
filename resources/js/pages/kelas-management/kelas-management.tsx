@@ -20,7 +20,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
 import DashboardLayout from '@/layouts/Dashboard/dashboard-layout';
 import { router, usePage } from "@inertiajs/react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 export default function ClassManagement() {
@@ -36,6 +36,16 @@ export default function ClassManagement() {
         setForm({ id: 0, nama_kelas: "", unit_id: selectedUnitId });
         setOpen(true);
     };
+
+    useEffect(() => {
+        const errors = props.errors
+        const error_key = Object.keys(errors)
+        error_key.forEach(key => {
+            toast.error(errors[key], {
+                position: "top-right",
+            })
+        })
+    }, [props])
 
     const handleOpenEdit = (kelas: Kelas) => {
         setForm(kelas);
