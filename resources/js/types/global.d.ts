@@ -80,4 +80,77 @@ declare global {
         created_at: string | null;
         updated_at: string | null;
     }
+
+    export interface TahunAjaran {
+        id: number;
+        nama_tahun_ajaran: string;
+    }
+
+    export interface SantriKelas {
+        santri_id: number;
+        kelas_id: number;
+        tahun_ajaran_id: number;
+        kelas: Kelas;
+        tahun_ajaran: TahunAjaran;
+    }
+
+    export interface Santri {
+        id: number;
+        nama: string;
+        tanggal_lahir: string;
+        alamat: string;
+        ibu_kandung: string;
+        ayah_kandung: string;
+        nisn: string;
+        no_hp: string;
+        no_hp_orang_tua: string;
+        status: 'aktif' | 'non-aktif' | 'alumni';
+        unit_id: number;
+        kelas_id: number;
+        kamar_id: number;
+        unit: Unit;
+        kelas: Kelas;
+        kamar: Kamar;
+        santri_kelas: SantriKelas[];
+    }
+
+    export interface SantriFormData {
+        nama: string;
+        nisn: string;
+        tanggal_lahir: string;
+        alamat: string;
+        ibu_kandung: string;
+        ayah_kandung: string;
+        no_hp: string;
+        no_hp_orang_tua: string;
+        status: 'aktif' | 'non-aktif' | 'alumni';
+        unit_id: number;
+        kelas_id: number;
+        kamar_id?: number;
+        password?: string;
+    }
+
+    export interface PaginatedResponse<T> {
+        data: T[];
+        current_page: number;
+        last_page: number;
+        per_page: number;
+        total: number;
+    }
+
+    export interface SantriManagementProps {
+        santri: PaginatedResponse<Santri>;
+        units: Unit[];
+        kelas: Kelas[];
+        kamars: Kamar[];
+        tahunAjaran: TahunAjaran[];
+        filters: {
+            search: string;
+            unit_id?: number;
+            kelas_id?: number;
+            kamar_id?: number;
+            tahun_ajaran_id?: number;
+            status?: string;
+        };
+    }
 }
