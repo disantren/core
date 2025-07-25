@@ -30,7 +30,7 @@ import { toast } from "sonner";
 
 export default function RoleManagement() {
     const { props } = usePage();
-    const { units }: { units: Array<Unit> } = props.props as unknown as { units: Array<Unit> };
+    const { units }: { units: Array<Unit> } = props as unknown as { units: Array<Unit> };
 
     const [open, setOpen] = useState(false);
     const [form, setForm] = useState({ id: 0, nama_unit: "" });

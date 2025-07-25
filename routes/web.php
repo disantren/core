@@ -21,6 +21,7 @@ require __DIR__ . '/app-setting-routes.php';
 require __DIR__ . '/user-management-routes.php';
 require __DIR__ . '/kelas-routes.php';
 require __DIR__ . '/kamar-routes.php';
+require __DIR__ . '/santri-router.php';
 
 // Include default Laravel route files
 require __DIR__ . '/settings.php';

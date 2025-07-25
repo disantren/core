@@ -13,8 +13,6 @@ class Santri extends Authenticatable
 {
     use HasFactory, Notifiable, SoftDeletes;
 
-
-    // Nama tabelnya gue specify biar jelas
     protected $table = 'santris';
 
     protected $fillable = [
@@ -30,6 +28,10 @@ class Santri extends Authenticatable
         'nisn',
         'no_hp',
         'no_hp_orang_tua',
+        'password',
+    ];
+
+    protected $hidden = [
         'password',
     ];
 
