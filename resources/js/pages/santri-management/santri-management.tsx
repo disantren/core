@@ -5,11 +5,11 @@ import {
     SelectItem,
     SelectTrigger,
     SelectValue,
-} from "@/components/ui/select"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
+} from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import {
     Table,
     TableBody,
@@ -17,100 +17,84 @@ import {
     TableHead,
     TableHeader,
     TableRow,
-} from "@/components/ui/table"
+} from "@/components/ui/table";
+
 import { usePage, router } from "@inertiajs/react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Search, Plus, Edit, Trash2, Eye } from "lucide-react";
-
-interface Unit {
-    id: number;
-    nama_unit: string;
-}
-
-interface Kelas {
-    id: number;
-    nama_kelas: string;
-}
-
-interface Kamar {
-    id: number;
-    nama_kamar: string;
-}
-
-interface Santri {
-    id: number;
-    nama: string;
-    nisn: string;
-    unit?: Unit;
-    kelas?: Kelas;
-    kamar?: Kamar;
-    status: string;
-    tanggal_lahir: string;
-    no_hp?: string;
-    alamat?: string;
-}
-
-interface PaginatedSantri {
-    data: Santri[];
-    current_page: number;
-    last_page: number;
-    per_page: number;
-    total: number;
-}
+import ModalAddSantri from "./components/modal-add-santri";
 
 function SantriManagement() {
-    const { props } = usePage()
-    const { santri, units, kelas, kamar }: { 
-        santri: PaginatedSantri, 
-        units: Array<Unit>, 
-        kelas: Array<Kelas>, 
-        kamar: Array<Kamar> 
-    } = props as unknown as { 
-        santri: PaginatedSantri, 
-        units: Array<Unit>, 
-        kelas: Array<Kelas>, 
-        kamar: Array<Kamar> 
-    }
+    const { props } = usePage();
+    const urlParams = new URLSearchParams(window.location.search);
 
+    const { santri, units, kelas, tahun_ajaran }: {
+        santri: PaginatedSantri,
+        units: Array<Unit>,
+        kelas: Array<Kelas>,
+        tahun_ajaran: Array<TahunAjaran>,
+    } = props as unknown as {
+        santri: PaginatedSantri,
+        units: Array<Unit>,
+        kelas: Array<Kelas>,
+        tahun_ajaran: Array<TahunAjaran>
+    };
+
+    // Ambil default filter dari URL agar sinkron
     const [filters, setFilters] = useState({
-        unit_id: 'all',
-        kelas_id: 'all',
-        kamar_id: 'all',
-        search: ''
+        unit_id: urlParams.get("unit_id") || "all",
+        kelas_id: urlParams.get("kelas_id") || "all",
+        kamar_id: urlParams.get("kamar_id") || "all",
+        search: urlParams.get("search") || "",
     });
-
     const [isLoading, setIsLoading] = useState(false);
+    const [showAddModal, setShowAddModal] = useState(false);
 
-    const handleFilterChange = (key: string, value: string) => {
-        const newFilters = { ...filters, [key]: value };
-        setFilters(newFilters);
-        applyFilters(newFilters);
+    type QueryParams = {
+        [key: string]: string | number | boolean | undefined;
+    };
+
+    const buildParams = (filterData: typeof filters, extra: QueryParams = {}) => {
+        const params = Object.fromEntries(
+            Object.entries(filterData).filter(([key, value]) => {
+                if (key === "search") return value.trim() !== "";
+                return value !== "all" && value !== "";
+            })
+        );
+        return { ...params, ...extra };
     };
 
     const applyFilters = (filterData: typeof filters) => {
         setIsLoading(true);
-        const params = Object.fromEntries(
-            Object.entries(filterData).filter(([key, value]) => {
-                if (key === 'search') return value !== '';
-                return value !== 'all' && value !== '';
-            })
-        );
-        
-        router.get(route('santri.index'), params, {
+        router.get(route("santri.index"), buildParams(filterData), {
             preserveState: true,
             preserveScroll: true,
-            onFinish: () => setIsLoading(false)
+            onFinish: () => setIsLoading(false),
         });
     };
 
+    const handleFilterChange = (key: string, value: string) => {
+        const newFilters = { ...filters, [key]: value };
+        setFilters(newFilters);
+        if (key !== "search") {
+            applyFilters(newFilters);
+        }
+    };
+
+    useEffect(() => {
+        const timeout = setTimeout(() => {
+            applyFilters(filters);
+        }, 400);
+        return () => clearTimeout(timeout);
+    }, [filters.search]);
+
     const getStatusBadge = (status: string) => {
         const statusConfig = {
-            'aktif': { variant: 'default' as const, label: 'Aktif' },
-            'nonaktif': { variant: 'secondary' as const, label: 'Non-Aktif' },
-            'lulus': { variant: 'outline' as const, label: 'Lulus' },
-            'pindah': { variant: 'destructive' as const, label: 'Pindah' }
+            aktif: { variant: "default" as const, label: "Aktif" },
+            nonaktif: { variant: "secondary" as const, label: "Non-Aktif" },
+            lulus: { variant: "outline" as const, label: "Lulus" },
+            pindah: { variant: "destructive" as const, label: "Pindah" },
         };
-        
         const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.aktif;
         return <Badge variant={config.variant}>{config.label}</Badge>;
     };
@@ -124,7 +108,7 @@ function SantriManagement() {
                     <p className="text-gray-600">Kelola data santri pesantren</p>
                 </div>
 
-                {/* Filters and Actions */}
+                {/* Filters */}
                 <Card className="mb-6">
                     <CardHeader>
                         <CardTitle className="text-lg">Filter & Pencarian</CardTitle>
@@ -141,18 +125,16 @@ function SantriManagement() {
                                     <Input
                                         placeholder="Cari nama atau NISN..."
                                         value={filters.search}
-                                        onChange={(e) => handleFilterChange('search', e.target.value)}
+                                        onChange={(e) => setFilters({ ...filters, search: e.target.value })}
                                         className="pl-10"
                                     />
                                 </div>
                             </div>
 
-                            {/* Unit Filter */}
+                            {/* Unit */}
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Unit
-                                </label>
-                                <Select value={filters.unit_id} onValueChange={(value) => handleFilterChange('unit_id', value)}>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Unit</label>
+                                <Select value={filters.unit_id} onValueChange={(v) => handleFilterChange("unit_id", v)}>
                                     <SelectTrigger className="w-[180px]">
                                         <SelectValue placeholder="Semua Unit" />
                                     </SelectTrigger>
@@ -167,12 +149,10 @@ function SantriManagement() {
                                 </Select>
                             </div>
 
-                            {/* Kelas Filter */}
+                            {/* Kelas */}
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Kelas
-                                </label>
-                                <Select value={filters.kelas_id} onValueChange={(value) => handleFilterChange('kelas_id', value)}>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Kelas</label>
+                                <Select value={filters.kelas_id} onValueChange={(v) => handleFilterChange("kelas_id", v)}>
                                     <SelectTrigger className="w-[180px]">
                                         <SelectValue placeholder="Semua Kelas" />
                                     </SelectTrigger>
@@ -187,37 +167,22 @@ function SantriManagement() {
                                 </Select>
                             </div>
 
-                            {/* Kamar Filter */}
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Kamar
-                                </label>
-                                <Select value={filters.kamar_id} onValueChange={(value) => handleFilterChange('kamar_id', value)}>
-                                    <SelectTrigger className="w-[180px]">
-                                        <SelectValue placeholder="Semua Kamar" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="all">Semua Kamar</SelectItem>
-                                        {kamar.map((kamar) => (
-                                            <SelectItem key={kamar.id} value={kamar.id.toString()}>
-                                                {kamar.nama_kamar}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
-
                             {/* Add Button */}
-                            <Button 
-                                onClick={() => router.get(route('santri.create'))}
-                                className="bg-blue-600 hover:bg-blue-700"
-                            >
-                                <Plus className="h-4 w-4 mr-2" />
-                                Tambah Santri
+                            <Button onClick={() => setShowAddModal(true)} className="bg-blue-600 hover:bg-blue-700">
+                                <Plus className="h-4 w-4 mr-2" /> Tambah Santri
                             </Button>
                         </div>
                     </CardContent>
                 </Card>
+
+                {/* Add Santri Modal */}
+                <ModalAddSantri
+                    open={showAddModal}
+                    onOpenChange={setShowAddModal}
+                    units={units}
+                    kelas={kelas}
+                    tahun_ajaran={tahun_ajaran}
+                />
 
                 {/* Data Table */}
                 <Card>
@@ -244,7 +209,6 @@ function SantriManagement() {
                                                 <TableHead>NISN</TableHead>
                                                 <TableHead>Unit</TableHead>
                                                 <TableHead>Kelas</TableHead>
-                                                <TableHead>Kamar</TableHead>
                                                 <TableHead>Status</TableHead>
                                                 <TableHead>No. HP</TableHead>
                                                 <TableHead className="text-right">Aksi</TableHead>
@@ -256,33 +220,24 @@ function SantriManagement() {
                                                     <TableRow key={item.id}>
                                                         <TableCell className="font-medium">{item.nama}</TableCell>
                                                         <TableCell>{item.nisn}</TableCell>
-                                                        <TableCell>{item.unit?.nama_unit || '-'}</TableCell>
-                                                        <TableCell>{item.kelas?.nama_kelas || '-'}</TableCell>
-                                                        <TableCell>{item.kamar?.nama_kamar || '-'}</TableCell>
+                                                        <TableCell>{item.unit?.nama_unit || "-"}</TableCell>
+                                                        <TableCell>{item.kelas?.nama_kelas || "-"}</TableCell>
                                                         <TableCell>{getStatusBadge(item.status)}</TableCell>
-                                                        <TableCell>{item.no_hp || '-'}</TableCell>
+                                                        <TableCell>{item.no_hp || "-"}</TableCell>
                                                         <TableCell className="text-right">
                                                             <div className="flex justify-end gap-2">
-                                                                <Button
-                                                                    variant="outline"
-                                                                    size="sm"
-                                                                    onClick={() => router.get(route('santri.show', item.id))}
-                                                                >
+                                                                <Button variant="outline" size="sm" onClick={() => router.get(route("santri.show", item.id))}>
                                                                     <Eye className="h-4 w-4" />
                                                                 </Button>
-                                                                <Button
-                                                                    variant="outline"
-                                                                    size="sm"
-                                                                    onClick={() => router.get(route('santri.edit', item.id))}
-                                                                >
+                                                                <Button variant="outline" size="sm" onClick={() => router.get(route("santri.edit", item.id))}>
                                                                     <Edit className="h-4 w-4" />
                                                                 </Button>
                                                                 <Button
                                                                     variant="outline"
                                                                     size="sm"
                                                                     onClick={() => {
-                                                                        if (confirm('Apakah Anda yakin ingin menghapus santri ini?')) {
-                                                                            router.delete(route('santri.destroy', item.id));
+                                                                        if (confirm("Apakah Anda yakin ingin menghapus santri ini?")) {
+                                                                            router.delete(route("santri.destroy", item.id));
                                                                         }
                                                                     }}
                                                                     className="text-red-600 hover:text-red-700"
@@ -295,7 +250,7 @@ function SantriManagement() {
                                                 ))
                                             ) : (
                                                 <TableRow>
-                                                    <TableCell colSpan={8} className="text-center py-8 text-gray-500">
+                                                    <TableCell colSpan={7} className="text-center py-8 text-gray-500">
                                                         Tidak ada data santri ditemukan
                                                     </TableCell>
                                                 </TableRow>
@@ -316,8 +271,11 @@ function SantriManagement() {
                                                 size="sm"
                                                 disabled={santri.current_page === 1}
                                                 onClick={() => {
-                                                    const params = { ...filters, page: santri.current_page - 1 };
-                                                    router.get(route('santri.index'), params, { preserveState: true });
+                                                    setIsLoading(true);
+                                                    router.get(route("santri.index"), buildParams(filters, { page: santri.current_page - 1 }), {
+                                                        preserveState: true,
+                                                        onFinish: () => setIsLoading(false),
+                                                    });
                                                 }}
                                             >
                                                 Sebelumnya
@@ -327,8 +285,11 @@ function SantriManagement() {
                                                 size="sm"
                                                 disabled={santri.current_page === santri.last_page}
                                                 onClick={() => {
-                                                    const params = { ...filters, page: santri.current_page + 1 };
-                                                    router.get(route('santri.index'), params, { preserveState: true });
+                                                    setIsLoading(true);
+                                                    router.get(route("santri.index"), buildParams(filters, { page: santri.current_page + 1 }), {
+                                                        preserveState: true,
+                                                        onFinish: () => setIsLoading(false),
+                                                    });
                                                 }}
                                             >
                                                 Selanjutnya

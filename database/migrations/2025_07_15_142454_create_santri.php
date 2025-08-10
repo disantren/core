@@ -22,7 +22,7 @@ return new class extends Migration
             $table->string('nisn')->unique()->nullable();
             $table->string('no_hp')->nullable();
             $table->string('no_hp_orang_tua')->nullable();
-            $table->text('password'); // Biasanya password di-hash jadi string(255), tapi text juga oke
+            $table->text('password');
             $table->timestamps();
             $table->softDeletes();
         });

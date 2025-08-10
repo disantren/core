@@ -47,4 +47,9 @@ class kelasController extends Controller
 
         return redirect()->route("kelas");      
     }
+
+    public function get_kelas_by_unit(Request $request, $unit_id){
+        $kelas = Kelas::where("unit_id", $unit_id)->get();
+        return response()->json($kelas);
+    }
 }

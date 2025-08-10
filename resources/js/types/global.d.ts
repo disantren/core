@@ -64,6 +64,17 @@ declare global {
         icon?: LucideIcon;
         children?: MenuItem[];
     }
+
+
+    interface PaginatedSantri {
+        data: Santri[];
+        current_page: number;
+        last_page: number;
+        per_page: number;
+        total: number;
+    }
+    
+
     interface Kelas {
         id: number;
         unit_id: number;

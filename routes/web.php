@@ -11,7 +11,7 @@ Route::get('/', function () {
 
 // Dashboard Main Route
 Route::prefix('dashboard')->group(function () {
-    Route::get('/', DashboardController::class);
+    Route::get('/', DashboardController::class)->name('dashboard');
 });
 
 
