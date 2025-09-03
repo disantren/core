@@ -36,6 +36,7 @@ class AppSettingController extends Controller
             'website' => 'string',
             'linkedin' => 'string',
             'spp_monthly_price' => 'nullable|numeric|min:0',
+            'attendance_enabled' => 'nullable|boolean',
         ];
 
         if ($request->hasFile('logo_img')) {
@@ -68,6 +69,9 @@ class AppSettingController extends Controller
         $data->linkedin = $request->linkedin;
         if ($request->has('spp_monthly_price')) {
             $data->spp_monthly_price = $request->spp_monthly_price;
+        }
+        if ($request->has('attendance_enabled')) {
+            $data->attendance_enabled = (bool) $request->boolean('attendance_enabled');
         }
         $data->save();
         return redirect()->back()->with('success', 'Pengaturan berhasil diperbarui.');

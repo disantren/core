@@ -18,5 +18,6 @@ class AppSetting extends Model
         'website',
         'linkeding',
         'spp_monthly_price',
+        'attendance_enabled',
     ];
 }

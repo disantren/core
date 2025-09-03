@@ -9,6 +9,7 @@ import DashboardLayout from '@/layouts/Dashboard/dashboard-layout';
 import { router, usePage } from '@inertiajs/react';
 import { toast } from 'sonner';
 import { Alert, AlertTitle } from '@/components/ui/alert';
+import { Switch } from '@/components/ui/switch';
 
 function AppSetting({ data }: { data: AppSettingsProps }) {
 
@@ -25,6 +26,7 @@ function AppSetting({ data }: { data: AppSettingsProps }) {
         website: data.website,
         linkedin: data.linkedin,
         spp_monthly_price: data.spp_monthly_price ?? 0,
+        attendance_enabled: Boolean(data.attendance_enabled ?? false),
     });
 
     const [logoFile, setLogoFile] = useState(null);
@@ -69,6 +71,7 @@ function AppSetting({ data }: { data: AppSettingsProps }) {
             website: formData.website,
             linkedin: formData.linkedin,
             spp_monthly_price: formData.spp_monthly_price,
+            attendance_enabled: formData.attendance_enabled ? 1 : 0,
         }, {
             onSuccess: () => {
                 toast.success('Data berhasil disimpan!', {
@@ -92,6 +95,21 @@ function AppSetting({ data }: { data: AppSettingsProps }) {
 
                     {/* Konten Form */}
                     <div className="space-y-6">
+                        {/* Feature flags */}
+                        <div className="space-y-2">
+                            <Label htmlFor="attendance_enabled">Fitur Absensi</Label>
+                            <div className="flex items-center justify-between rounded-md border p-3">
+                                <div>
+                                    <div className="font-medium">Aktifkan Absensi</div>
+                                    <div className="text-sm text-gray-500">Nonaktifkan untuk menyembunyikan menu dan memblokir akses absensi.</div>
+                                </div>
+                                <Switch
+                                    id="attendance_enabled"
+                                    checked={!!formData.attendance_enabled}
+                                    onCheckedChange={(checked) => setFormData(prev => ({ ...prev, attendance_enabled: checked }))}
+                                />
+                            </div>
+                        </div>
                         {/* SPP Bulanan */}
                         <div className="space-y-2">
                             <Label htmlFor="spp_monthly_price">Harga SPP Bulanan (Rp)</Label>

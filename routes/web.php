@@ -7,6 +7,9 @@ use App\Http\Controllers\kelasController;
 use App\Http\Controllers\kamarController;
 use App\Http\Controllers\SantriController;
 use App\Http\Controllers\AccountingController;
+use App\Http\Controllers\AttendanceController;
+use App\Http\Controllers\SantriAuthController;
+use App\Http\Controllers\SantriAttendanceController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -176,6 +179,15 @@ Route::middleware('auth')->prefix('dashboard')->group(function () {
         Route::put('/pembayaran/{payment}', [AccountingController::class, 'updatePayment'])->name('update_payment');
         Route::delete('/pembayaran/{payment}', [AccountingController::class, 'deletePayment'])->name('delete_payment');
     });
+
+    // Attendance (Absensi)
+    Route::middleware('feature.attendance')->prefix('attendance')->name('attendance.')->group(function () {
+        Route::get('/', [AttendanceController::class, 'index'])->name('index');
+        Route::post('/sessions', [AttendanceController::class, 'storeSession'])->name('sessions.store');
+        Route::post('/sessions/{session}/lock', [AttendanceController::class, 'lock'])->name('sessions.lock');
+        Route::get('/sessions/{session}', [AttendanceController::class, 'detail'])->name('sessions.detail');
+        Route::post('/sessions/{session}/records', [AttendanceController::class, 'mark'])->name('records.mark');
+    });
 });
 
 // Include default Laravel route files
@@ -186,3 +198,18 @@ require __DIR__ . '/auth.php';
 Route::get('/dahsboard/akuntansi', function () {
     return redirect()->route('akuntansi.dashboard');
 })->middleware('auth');
+
+// Santri Auth + Attendance routes
+Route::prefix('santri')->group(function () {
+    Route::middleware('guest:santri')->group(function () {
+        Route::get('/login', [SantriAuthController::class, 'showLogin'])->name('santri.login');
+        Route::post('/login', [SantriAuthController::class, 'login'])->name('santri.login.post');
+    });
+
+    Route::middleware(['auth:santri', 'feature.attendance'])->group(function () {
+        Route::get('/', function () { return redirect('/santri/absen'); });
+        Route::get('/absen', [SantriAttendanceController::class, 'index'])->name('santri.absen');
+        Route::post('/absen', [SantriAttendanceController::class, 'mark'])->name('santri.absen.mark');
+        Route::post('/logout', [SantriAuthController::class, 'logout'])->name('santri.logout');
+    });
+});

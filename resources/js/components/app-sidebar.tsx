@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useMemo, useState } from "react";
-import { Home, Settings, User, ChevronDown, ChevronRight, Building, UserRound, Banknote } from "lucide-react";
+import { Home, Settings, User, ChevronDown, ChevronRight, Building, UserRound, Banknote, CalendarCheck } from "lucide-react";
 
 import {
   Sidebar,
@@ -159,7 +159,7 @@ function CollapsibleMenuItem({ item }: { item: MenuItem }) {
             className="flex items-center gap-2 flex-1"
             onClick={(e) => hasChildren && e.preventDefault()}
           >
-            {item.icon && <item.icon className="w-4 h-4" />}
+            {/* {item.icon && <item.icon className="w-4 h-4" />} */}
             <span>{item.title}</span>
           </Link>
           {hasChildren && (
@@ -192,8 +192,40 @@ export function AppSidebar() {
   const { app_setting } = props as unknown as { app_setting: PondokPesantren };
   const roleName = (props as any)?.auth?.user?.role?.name as string | undefined;
   const permissions = ((props as any)?.auth?.user?.role?.permissions || []).map((p: any) => p.name as string);
+  const authSantri = (props as any)?.auth?.santri;
 
-  const visibleItems = useMemo(() => filterMenu(items, roleName, permissions), [roleName, permissions]);
+  // Build items dynamically to inject feature-based menu
+  const menuItems = useMemo(() => {
+    // If logged in as santri, show a minimal menu
+    if (authSantri) {
+      const base: MenuItem[] = [];
+      if (app_setting?.attendance_enabled) {
+        base.push({ title: 'Absensi', url: '/santri/absen', icon: CalendarCheck });
+      }
+      return base;
+    }
+
+    // Default admin/staff menu
+    const base = JSON.parse(JSON.stringify(items)) as MenuItem[];
+    if (app_setting?.attendance_enabled) {
+      // Find Kesantrian group and append Absensi
+      const kesantrian = base.find(i => i.title === 'Kesantrian');
+      if (kesantrian) {
+        kesantrian.children = kesantrian.children || [];
+        // Avoid duplicates
+        if (!kesantrian.children.find(c => c.title === 'Absensi')) {
+          kesantrian.children.push({
+            title: 'Absensi',
+            url: '/dashboard/attendance',
+            icon: CalendarCheck,
+          });
+        }
+      }
+    }
+    return base;
+  }, [authSantri, app_setting?.attendance_enabled]);
+
+  const visibleItems = useMemo(() => filterMenu(menuItems, roleName, permissions), [menuItems, roleName, permissions]);
 
   return (
     <Sidebar variant="inset">

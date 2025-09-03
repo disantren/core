@@ -5,6 +5,7 @@ use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\PermissionMiddleware;
 use App\Http\Middleware\RolePermissionMiddleware;
 use App\Http\Middleware\RoleMiddleware;
+use App\Http\Middleware\EnsureAttendanceEnabled;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -30,6 +31,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'permission' => RolePermissionMiddleware::class,
             'permission.abort' => PermissionMiddleware::class,
             'role' => RoleMiddleware::class,
+            'feature.attendance' => EnsureAttendanceEnabled::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

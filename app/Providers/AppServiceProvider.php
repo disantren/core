@@ -21,11 +21,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        $app_setting = AppSetting::find(1);
-        if (!$app_setting) {
-            $app_setting = new AppSetting();
-            $app_setting->save();
-        }
+        $app_setting = AppSetting::firstOrCreate(['id' => 1], []);
 
 
         Inertia::share("app_setting", $app_setting);

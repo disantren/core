@@ -12,6 +12,7 @@ declare global {
         website: string;
         linkedin: string;
         spp_monthly_price?: number | null;
+        attendance_enabled?: boolean;
         created_at: string | null;
         updated_at: string | null;
     }
@@ -46,8 +47,18 @@ declare global {
         facebook: string;
         website: string;
         linkedin: string;
+        attendance_enabled?: boolean;
         created_at: string | null;
         updated_at: string;
+    }
+
+    interface AttendanceSessionDTO {
+        id: number;
+        date: string;
+        kelas_id: number;
+        is_locked: boolean;
+        records_count?: number;
+        kelas?: Kelas;
     }
 
     interface Unit {

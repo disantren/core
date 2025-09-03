@@ -6,6 +6,7 @@ use Illuminate\Foundation\Inspiring;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 use Tighten\Ziggy\Ziggy;
+use Illuminate\Support\Facades\Auth;
 
 class HandleInertiaRequests extends Middleware
 {
@@ -69,6 +70,18 @@ class HandleInertiaRequests extends Middleware
                             ->all(),
                     ] : null,
                 ] : null,
+                'santri' => function () {
+                    $s = Auth::guard('santri')->user();
+                    if (!$s) return null;
+                    return [
+                        'id' => $s->id,
+                        'nama' => $s->nama,
+                        'nis' => $s->nis,
+                        'nisn' => $s->nisn,
+                        'kelas_id' => $s->kelas_id,
+                        'unit_id' => $s->unit_id,
+                    ];
+                },
             ],
             'ziggy' => fn (): array => [
                 ...(new Ziggy)->toArray(),
