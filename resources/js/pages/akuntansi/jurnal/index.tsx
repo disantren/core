@@ -31,10 +31,35 @@ export default function JurnalIndex() {
   });
 
   const onSubmitEntry = () => {
-    const payload = { ...entryForm };
+    // Basic client-side validation for better UX
+    const debit = parseFloat(entryForm.debit || '0');
+    const credit = parseFloat(entryForm.credit || '0');
+    if (!entryForm.account_id) {
+      toast.error('Pilih akun terlebih dahulu', { position: 'top-right' });
+      return;
+    }
+    if (!entryForm.entry_date) {
+      toast.error('Tanggal harus diisi', { position: 'top-right' });
+      return;
+    }
+    if ((debit <= 0 && credit <= 0) || (isNaN(debit) && isNaN(credit))) {
+      toast.error('Isi salah satu: Debit atau Kredit (> 0)', { position: 'top-right' });
+      return;
+    }
+    if (debit > 0 && credit > 0) {
+      toast.error('Hanya salah satu boleh diisi: Debit ATAU Kredit', { position: 'top-right' });
+      return;
+    }
+
+    const payload: any = { ...entryForm };
     if (!payload.santri_id || payload.santri_id === 'none') delete payload.santri_id;
+
     router.post(route('akuntansi.create_ledger'), payload, {
-      onSuccess: () => toast.success('Jurnal berhasil dicatat', { position: "top-right" })
+      onSuccess: () => toast.success('Jurnal berhasil dicatat', { position: 'top-right' }),
+      onError: (errors: Record<string, string>) => {
+        const first = Object.values(errors)[0] || 'Gagal menyimpan jurnal';
+        toast.error(String(first), { position: 'top-right' });
+      },
     });
   };
 
@@ -44,6 +69,26 @@ export default function JurnalIndex() {
   };
 
   const accountOptions = useMemo(() => (Array.isArray(accounts) ? accounts : []).map(a => ({ value: String(a.id), label: `${a.code} - ${a.name}` })), [accounts]);
+
+  // Normalize paginated ledger entries to a simple array
+  const entries: LedgerEntry[] = useMemo(() => {
+    const le: any = ledger_entries as any;
+    if (Array.isArray(le)) return le as LedgerEntry[];
+    if (le && Array.isArray(le.data)) return le.data as LedgerEntry[];
+    return [] as LedgerEntry[];
+  }, [ledger_entries]);
+
+  const formatDate = (s: string) => {
+    try {
+      const d = new Date(s.includes('T') ? s : `${s}T00:00:00`);
+      const dd = String(d.getUTCDate()).padStart(2, '0');
+      const mm = String(d.getUTCMonth() + 1).padStart(2, '0');
+      const yyyy = d.getUTCFullYear();
+      return `${dd}-${mm}-${yyyy}`;
+    } catch {
+      return s;
+    }
+  };
 
   return (
     <DashboardLayout>
@@ -93,9 +138,9 @@ export default function JurnalIndex() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {(Array.isArray(ledger_entries) ? ledger_entries : []).map((e) => (
+                  {entries.map((e) => (
                     <TableRow key={e.id}>
-                      <TableCell>{e.entry_date}</TableCell>
+                      <TableCell>{formatDate(e.entry_date)}</TableCell>
                       <TableCell>
                         <div className="font-medium">{e.account.code} - {e.account.name}</div>
                         <div className="text-xs text-muted-foreground">{e.description}{e.santri ? ` • ${e.santri.nama}` : ''}</div>
@@ -104,7 +149,7 @@ export default function JurnalIndex() {
                       <TableCell>{currency(e.credit)}</TableCell>
                     </TableRow>
                   ))}
-                  {(!ledger_entries || ledger_entries.length === 0) && (
+                  {(entries.length === 0) && (
                     <TableRow><TableCell colSpan={4} className="text-center">Belum ada data</TableCell></TableRow>
                   )}
                 </TableBody>

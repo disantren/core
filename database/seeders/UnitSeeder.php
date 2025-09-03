@@ -13,9 +13,11 @@ class UnitSeeder extends Seeder
 
         Unit::create([
             'nama_unit' => 'Reguler',
+            'spp_monthly_price' => 300000,
         ]);
         Unit::create([
-            'nama_unit' => 'Yayasan'
+            'nama_unit' => 'Yayasan',
+            'spp_monthly_price' => 250000,
         ]);
     }
 }

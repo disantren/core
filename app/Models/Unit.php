@@ -11,7 +11,7 @@ class Unit extends Model
 {
     use HasFactory, SoftDeletes;
 
-    protected $fillable = ['nama_unit'];
+    protected $fillable = ['nama_unit', 'spp_monthly_price'];
 
     public function kelas(): HasMany
     {

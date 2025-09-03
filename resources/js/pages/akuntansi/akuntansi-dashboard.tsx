@@ -47,16 +47,6 @@ export default function AkuntansiDashboard() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <Card className="lg:col-span-2 mb-4">
-            <CardHeader>
-              <CardTitle>Menu Akuntansi</CardTitle>
-            </CardHeader>
-            <CardContent className="flex gap-4">
-              <Button onClick={() => window.location.href = route('akuntansi.akun')}>Manajemen Akun</Button>
-              <Button onClick={() => window.location.href = route('akuntansi.jurnal')}>Jurnal</Button>
-              <Button onClick={() => window.location.href = route('akuntansi.pembayaran')}>Pembayaran</Button>
-            </CardContent>
-          </Card>
           <Card>
             <CardHeader><CardTitle>Entri Buku Besar Terbaru</CardTitle></CardHeader>
             <CardContent>

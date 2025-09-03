@@ -125,19 +125,52 @@ class AccountingController extends Controller
             'note' => 'nullable|string',
         ]);
 
-        $paidAt = null;
-        if ($validated['status'] === 'paid') {
-            $paidAt = now();
-        }
+        DB::transaction(function () use ($validated) {
+            $paidAt = null;
+            if ($validated['status'] === 'paid') {
+                $paidAt = now();
+            }
 
-        StudentPayment::create([
-            'santri_id' => $validated['santri_id'],
-            'amount' => $validated['amount'],
-            'status' => $validated['status'],
-            'method' => 'dummy',
-            'note' => $validated['note'] ?? null,
-            'paid_at' => $paidAt,
-        ]);
+            $payment = StudentPayment::create([
+                'santri_id' => $validated['santri_id'],
+                'amount' => $validated['amount'],
+                'status' => $validated['status'],
+                'method' => 'dummy',
+                'note' => $validated['note'] ?? null,
+                'paid_at' => $paidAt,
+            ]);
+
+            // Auto create ledger entries when payment is paid
+            if ($payment->status === 'paid') {
+                $kas = Account::where('code', '1000')->first();
+                $pendapatanSpp = Account::where('code', '4000')->first();
+                if ($kas && $pendapatanSpp) {
+                    $ref = 'PMT-' . $payment->id;
+                    $date = now()->toDateString();
+                    $amount = (float) $payment->amount;
+                    // Debit Kas
+                    LedgerEntry::create([
+                        'account_id' => $kas->id,
+                        'santri_id' => $payment->santri_id,
+                        'entry_date' => $date,
+                        'description' => 'Pembayaran SPP',
+                        'debit' => $amount,
+                        'credit' => 0,
+                        'reference' => $ref,
+                    ]);
+                    // Credit Pendapatan SPP
+                    LedgerEntry::create([
+                        'account_id' => $pendapatanSpp->id,
+                        'santri_id' => $payment->santri_id,
+                        'entry_date' => $date,
+                        'description' => 'Pembayaran SPP',
+                        'debit' => 0,
+                        'credit' => $amount,
+                        'reference' => $ref,
+                    ]);
+                }
+            }
+        });
 
         return redirect()->route('akuntansi.pembayaran');
     }
@@ -169,7 +202,7 @@ class AccountingController extends Controller
         $entries = $query->paginate($perPage)->withQueryString();
 
         $accounts = Account::orderBy('code')->get();
-        $santris = Santri::select('id', 'nama')->orderBy('nama')->get();
+        $santris = Santri::select('id', 'nama', 'unit_id')->orderBy('nama')->get();
 
         return Inertia::render('akuntansi/jurnal/index', [
             'ledger_entries' => $entries,
@@ -193,11 +226,83 @@ class AccountingController extends Controller
         $perPage = (int) $request->input('per_page', 15);
         $payments = $query->paginate($perPage)->withQueryString();
 
-        $santris = Santri::select('id', 'nama')->orderBy('nama')->get();
+        $santris = Santri::select('id', 'nama', 'unit_id')->orderBy('nama')->get();
+
+        // Compute santri who have NOT paid this month
+        $startOfMonth = now()->startOfMonth();
+        $endOfMonth = now()->endOfMonth();
+        $paidThisMonthIds = StudentPayment::where('status', 'paid')
+            ->whereBetween('paid_at', [$startOfMonth, $endOfMonth])
+            ->pluck('santri_id')
+            ->unique()
+            ->toArray();
+        $unpaidThisMonth = Santri::select('id', 'nama', 'unit_id')
+            ->when(!empty($paidThisMonthIds), function ($q) use ($paidThisMonthIds) {
+                $q->whereNotIn('id', $paidThisMonthIds);
+            })
+            ->orderBy('nama')
+            ->get();
+
+        // Get SPP price from app settings (fallback) and per-unit price map
+        $sppPrice = optional(\App\Models\AppSetting::find(1))->spp_monthly_price;
+        $unitPrices = \App\Models\Unit::query()->pluck('spp_monthly_price', 'id');
+
+        // Build arrears from start of year to current month
+        $start = now()->startOfYear()->startOfMonth();
+        $end = now()->endOfMonth();
+        $months = [];
+        $cursor = $start->copy();
+        while ($cursor->lte($end)) {
+            $months[] = $cursor->format('Y-m');
+            $cursor->addMonthNoOverflow();
+        }
+
+        // Map paid months per santri
+        $paidBySantriMonth = StudentPayment::where('status', 'paid')
+            ->whereBetween('paid_at', [$start, $end])
+            ->get()
+            ->groupBy(function ($p) { return $p->santri_id; })
+            ->map(function ($rows) {
+                return collect($rows)->map(function ($p) {
+                    return \Carbon\Carbon::parse($p->paid_at)->format('Y-m');
+                })->unique()->values();
+            });
+
+        $arrears = $santris->map(function ($s) use ($months, $paidBySantriMonth, $unitPrices, $sppPrice) {
+            $paidMonths = $paidBySantriMonth->get($s->id, collect());
+            $unpaidMonths = collect($months)->reject(function ($ym) use ($paidMonths) {
+                return $paidMonths->contains($ym);
+            })->values();
+            $unitPrice = (int) ($unitPrices[$s->unit_id] ?? $sppPrice ?? 0);
+            return [
+                'id' => $s->id,
+                'nama' => $s->nama,
+                'unit_id' => $s->unit_id,
+                'months_unpaid' => $unpaidMonths->count(),
+                'months' => $unpaidMonths->map(function ($ym) {
+                    $d = \Carbon\Carbon::createFromFormat('Y-m', $ym)->startOfMonth();
+                    return $d->format('m-Y');
+                })->values(),
+                'total_due' => $unitPrice * $unpaidMonths->count(),
+                'unit_price' => $unitPrice,
+            ];
+        })->filter(function ($row) {
+            return $row['months_unpaid'] > 0;
+        })->values();
 
         return Inertia::render('akuntansi/pembayaran/index', [
             'student_payments' => $payments,
             'santris' => $santris,
+            'unpaid_this_month' => $unpaidThisMonth->map(function ($s) {
+                return [
+                    'id' => $s->id,
+                    'nama' => $s->nama,
+                    'unit_id' => $s->unit_id,
+                ];
+            }),
+            'spp_price' => (float) ($sppPrice ?? 0), // legacy fallback
+            'unit_prices' => $unitPrices, // { unit_id: price }
+            'arrears' => $arrears,
         ]);
     }
 

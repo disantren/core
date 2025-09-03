@@ -11,6 +11,7 @@ declare global {
         facebook: string;
         website: string;
         linkedin: string;
+        spp_monthly_price?: number | null;
         created_at: string | null;
         updated_at: string | null;
     }
@@ -52,6 +53,7 @@ declare global {
     interface Unit {
         id: number;
         nama_unit: string;
+        spp_monthly_price?: number;
         created_at: string;
         updated_at: string;
     }

@@ -24,6 +24,7 @@ function AppSetting({ data }: { data: AppSettingsProps }) {
         facebook: data.facebook,
         website: data.website,
         linkedin: data.linkedin,
+        spp_monthly_price: data.spp_monthly_price ?? 0,
     });
 
     const [logoFile, setLogoFile] = useState(null);
@@ -67,6 +68,7 @@ function AppSetting({ data }: { data: AppSettingsProps }) {
             facebook: formData.facebook,
             website: formData.website,
             linkedin: formData.linkedin,
+            spp_monthly_price: formData.spp_monthly_price,
         }, {
             onSuccess: () => {
                 toast.success('Data berhasil disimpan!', {
@@ -90,6 +92,23 @@ function AppSetting({ data }: { data: AppSettingsProps }) {
 
                     {/* Konten Form */}
                     <div className="space-y-6">
+                        {/* SPP Bulanan */}
+                        <div className="space-y-2">
+                            <Label htmlFor="spp_monthly_price">Harga SPP Bulanan (Rp)</Label>
+                            <Input
+                                id="spp_monthly_price"
+                                name="spp_monthly_price"
+                                type="number"
+                                value={String(formData.spp_monthly_price ?? '')}
+                                onChange={handleInputChange}
+                                placeholder="Contoh: 150000"
+                            />
+                            {errors?.spp_monthly_price && (
+                                <Alert variant="destructive">
+                                    <AlertTitle>{errors?.spp_monthly_price}</AlertTitle>
+                                </Alert>
+                            )}
+                        </div>
                         {/* Nama Pondok Pesantren */}
                         <div className="space-y-2">
                             <Label htmlFor="nama_pondok_pesantren">Nama Lembaga</Label>

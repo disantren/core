@@ -33,7 +33,7 @@ export default function RoleManagement() {
     const { units }: { units: Array<Unit> } = props as unknown as { units: Array<Unit> };
 
     const [open, setOpen] = useState(false);
-    const [form, setForm] = useState({ id: 0, nama_unit: "" });
+    const [form, setForm] = useState({ id: 0, nama_unit: "", spp_monthly_price: "" as string | number });
 
 
     useEffect(() => {
@@ -47,12 +47,12 @@ export default function RoleManagement() {
     }, [props])
 
     const handleOpenCreate = () => {
-        setForm({ id: 0, nama_unit: "" });
+        setForm({ id: 0, nama_unit: "", spp_monthly_price: "" });
         setOpen(true);
     };
 
     const handleOpenEdit = (unit: Unit) => {
-        setForm(unit);
+        setForm({ id: unit.id, nama_unit: unit.nama_unit, spp_monthly_price: (unit as any).spp_monthly_price ?? "" });
         setOpen(true);
     };
 
@@ -96,23 +96,29 @@ export default function RoleManagement() {
                         <Button onClick={handleOpenCreate}>Tambah Unit</Button>
                     </div>
 
-                    <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-                        <Table>
-                            <TableHeader>
-                                <TableRow className="bg-gray-50 hover:bg-gray-100">
-                                    <TableHead className="w-[50%]">Nama Unit</TableHead>
-                                    <TableHead className="text-right">Actions</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {units.length > 0 ? (
-                                    units.map((unit) => (
-                                        <TableRow key={unit.id} className="hover:bg-gray-50">
-                                            <TableCell>
-                                                <div className="font-medium text-gray-800">{unit.nama_unit}</div>
-                                            </TableCell>
-                                            <TableCell className="text-right">
-                                                <DropdownMenu>
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+                <Table>
+                    <TableHeader>
+                        <TableRow className="bg-gray-50 hover:bg-gray-100">
+                            <TableHead className="w-[50%]">Nama Unit</TableHead>
+                            <TableHead className="w-[30%]">Harga SPP/Bulan</TableHead>
+                            <TableHead className="text-right">Actions</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {units.length > 0 ? (
+                            units.map((unit) => (
+                                <TableRow key={unit.id} className="hover:bg-gray-50">
+                                    <TableCell>
+                                        <div className="font-medium text-gray-800">{unit.nama_unit}</div>
+                                    </TableCell>
+                                    <TableCell>
+                                        <div className="text-gray-800">
+                                            {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(((unit as any).spp_monthly_price ?? 0) as number)}
+                                        </div>
+                                    </TableCell>
+                                    <TableCell className="text-right">
+                                        <DropdownMenu>
                                                     <DropdownMenuTrigger asChild>
                                                         <Button
                                                             variant="ghost"
@@ -150,6 +156,13 @@ export default function RoleManagement() {
                             name="nama_unit"
                             placeholder="Nama unit"
                             value={form.nama_unit}
+                            onChange={handleChange}
+                        />
+                        <Input
+                            name="spp_monthly_price"
+                            placeholder="Harga SPP / bulan"
+                            type="number"
+                            value={form.spp_monthly_price}
                             onChange={handleChange}
                         />
                     </div>

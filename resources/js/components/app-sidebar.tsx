@@ -27,6 +27,25 @@ const items: MenuItem[] = [
     title: "Akuntansi",
     url: "/dashboard/akuntansi",
     icon: Banknote,
+    children: [
+      {
+        title: "Laporan",
+        url: "/dashboard/akuntansi",
+      },
+      {
+        title: "Akun",
+        url: "/dashboard/akuntansi/akun",
+      },
+      {
+        title: "Jurnal",
+        url: "/dashboard/akuntansi/jurnal",
+      },
+      {
+        title: "Pembayaran",
+        url: "/dashboard/akuntansi/pembayaran",
+      },
+      
+    ]
   },
   {
     title: "Sarana Prasarana",

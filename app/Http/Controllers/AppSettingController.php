@@ -35,6 +35,7 @@ class AppSettingController extends Controller
             'facebook' => 'string',
             'website' => 'string',
             'linkedin' => 'string',
+            'spp_monthly_price' => 'nullable|numeric|min:0',
         ];
 
         if ($request->hasFile('logo_img')) {
@@ -65,6 +66,9 @@ class AppSettingController extends Controller
         $data->facebook = $request->facebook;
         $data->website = $request->website;
         $data->linkedin = $request->linkedin;
+        if ($request->has('spp_monthly_price')) {
+            $data->spp_monthly_price = $request->spp_monthly_price;
+        }
         $data->save();
         return redirect()->back()->with('success', 'Pengaturan berhasil diperbarui.');
     }
@@ -80,10 +84,14 @@ class AppSettingController extends Controller
     public function create_unit(Request $request){
         $request->validate([
             'nama_unit' => 'required|string|max:255',
+            'spp_monthly_price' => 'nullable|numeric|min:0',
         ]);
 
         $data = new Unit();
         $data->nama_unit = $request->nama_unit;
+        if ($request->has('spp_monthly_price')) {
+            $data->spp_monthly_price = (int) $request->spp_monthly_price;
+        }
         $data->save();
         return redirect()->back()->with('success', 'Unit berhasil dibuat.');
     }
@@ -92,10 +100,14 @@ class AppSettingController extends Controller
         $request->validate([
             'id' => 'required|numeric',
             'nama_unit' => 'required|string|max:255',
+            'spp_monthly_price' => 'nullable|numeric|min:0',
         ]);
 
         $data = Unit::find($request->id);
         $data->nama_unit = $request->nama_unit;
+        if ($request->has('spp_monthly_price')) {
+            $data->spp_monthly_price = (int) $request->spp_monthly_price;
+        }
         $data->save();
         return redirect()->back()->with('success', 'Unit berhasil diperbarui.');
     }

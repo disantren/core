@@ -17,5 +17,6 @@ class AppSetting extends Model
         'facebook',
         'website',
         'linkeding',
+        'spp_monthly_price',
     ];
 }
