@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useMemo, useState } from "react";
-import { Home, Settings, User, ChevronDown, ChevronRight, Building, UserRound } from "lucide-react";
+import { Home, Settings, User, ChevronDown, ChevronRight, Building, UserRound, Banknote } from "lucide-react";
 
 import {
   Sidebar,
@@ -22,6 +22,11 @@ const items: MenuItem[] = [
     title: "Dashboard",
     url: "/dashboard",
     icon: Home,
+  },
+  {
+    title: "Akuntansi",
+    url: "/dashboard/akuntansi",
+    icon: Banknote,
   },
   {
     title: "Sarana Prasarana",

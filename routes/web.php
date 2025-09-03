@@ -6,6 +6,7 @@ use App\Http\Controllers\UserManagementController;
 use App\Http\Controllers\kelasController;
 use App\Http\Controllers\kamarController;
 use App\Http\Controllers\SantriController;
+use App\Http\Controllers\AccountingController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -136,8 +137,26 @@ Route::middleware('auth')->prefix('dashboard')->group(function () {
     Route::delete('/santri/{santri}', [SantriController::class, 'destroy'])
         ->middleware('permission:santri.edit')
         ->name('santri.destroy');
+
+    // Akuntansi
+    Route::get('/akuntansi', [AccountingController::class, 'index'])
+        ->name('akuntansi.dashboard');
+
+    Route::post('/akuntansi/akun', [AccountingController::class, 'createAccount'])
+        ->name('akuntansi.create_account');
+
+    Route::post('/akuntansi/jurnal', [AccountingController::class, 'createLedgerEntry'])
+        ->name('akuntansi.create_ledger');
+
+    Route::post('/akuntansi/pembayaran', [AccountingController::class, 'createDummyPayment'])
+        ->name('akuntansi.create_payment');
 });
 
 // Include default Laravel route files
 require __DIR__ . '/settings.php';
 require __DIR__ . '/auth.php';
+
+// Backward-compatibility for typo route: /dahsboard/akuntansi
+Route::get('/dahsboard/akuntansi', function () {
+    return redirect()->route('akuntansi.dashboard');
+})->middleware('auth');
