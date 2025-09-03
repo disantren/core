@@ -24,10 +24,9 @@ interface ModalAddSantriProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
     units: Array<Unit>;
-    tahun_ajaran: Array<TahunAjaran>;
 }
 
-function ModalAddSantri({ open, onOpenChange, units, tahun_ajaran }: ModalAddSantriProps) {
+function ModalAddSantri({ open, onOpenChange, units }: ModalAddSantriProps) {
 
     const { props } = usePage()
     const { errors } = props
@@ -43,7 +42,6 @@ function ModalAddSantri({ open, onOpenChange, units, tahun_ajaran }: ModalAddSan
         nisn: "",
         unit_id: "",
         kelas_id: "",
-        tahun_ajaran_id: "",
         status: "aktif",
         no_hp: "",
         tanggal_lahir: "",
@@ -77,7 +75,6 @@ function ModalAddSantri({ open, onOpenChange, units, tahun_ajaran }: ModalAddSan
             alamat: "",
             ayah_kandung: "",
             ibu_kandung: "",
-            tahun_ajaran_id: "",
             no_hp_orang_tua: "",
             password: "",
         });
@@ -147,25 +144,7 @@ function ModalAddSantri({ open, onOpenChange, units, tahun_ajaran }: ModalAddSan
                             {errors.nisn && <p className="text-red-500 mt-1">{errors.nisn}</p>}
                         </div>
 
-                        {/* Tahun Ajaran */}
-                        <div>
-                            <Label htmlFor="tahun_ajaran_id" className="text-sm font-medium text-gray-700">
-                                Tahun Ajaran <span className="text-red-500">*</span>
-                            </Label>
-                            <Select value={formData.tahun_ajaran_id} onValueChange={(v) => handleFormChange("tahun_ajaran_id", v)}>
-                                <SelectTrigger className="mt-1">
-                                    <SelectValue placeholder="Pilih Tahun Ajaran" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {tahun_ajaran.map((tahun_ajaran) => (
-                                        <SelectItem key={tahun_ajaran.id} value={tahun_ajaran.id.toString()}>
-                                            {tahun_ajaran.nama_tahun_ajaran}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            {errors.tahun_ajaran_id && <p className="text-red-500 mt-1">{errors.tahun_ajaran_id}</p>}
-                        </div>
+                        
 
                         {/* No. HP */}
                         <div>

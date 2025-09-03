@@ -1,4 +1,5 @@
-import { useState } from "react";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { useMemo, useState } from "react";
 import { Home, Settings, User, ChevronDown, ChevronRight, Building, UserRound } from "lucide-react";
 
 import {
@@ -15,6 +16,7 @@ import {
 import { Link, usePage } from "@inertiajs/react";
 import { Separator } from "./ui/separator";
 
+// Define base menu items with optional role/permission gates
 const items: MenuItem[] = [
   {
     title: "Dashboard",
@@ -27,30 +29,33 @@ const items: MenuItem[] = [
     children: [
       {
         title: "Kelas",
-        url: "/dashboard/kelas"
+        url: "/dashboard/kelas",
       },
       {
-        title: "Kamar", 
-        url: "/dashboard/kamar"
+        title: "Kamar",
+        url: "/dashboard/kamar",
       }
     ]
-  },{
-    title: "Kesantrian", 
+  },
+  {
+    title: "Kesantrian",
     icon: UserRound,
     children: [
       {
         title: "Santri",
-        url: "/dashboard/santri"
+        url: "/dashboard/santri",
       }
     ]
   },
   {
     title: "Pengaturan",
     icon: Settings,
+    // Only for Admins by default
+    roles: ["Admin"],
     children: [
       {
         title: "Units",
-        url: "/dashboard/app-setting/unit"
+        url: "/dashboard/app-setting/unit",
       },
       {
         title: "App Setting",
@@ -61,6 +66,8 @@ const items: MenuItem[] = [
   {
     title: "User Management",
     icon: User,
+    // Only for Admins by default
+    roles: ["Admin"],
     children: [
       {
         title: "User List",
@@ -78,7 +85,41 @@ const items: MenuItem[] = [
   },
 ];
 
+function isAllowed(item: MenuItem, roleName?: string, permissions: string[] = []) {
+  // If item defines allowed roles and current role not included, block
+  if (item.roles && item.roles.length > 0) {
+    if (!roleName || !item.roles.map(r => r.toLowerCase()).includes(roleName.toLowerCase())) {
+      return false;
+    }
+  }
+  // If item defines required permissions and user doesn't have them, block
+  if (item.permissions && item.permissions.length > 0) {
+    const userPerms = new Set(permissions.map(p => p.toLowerCase()));
+    // Require all permissions in the list
+    const ok = item.permissions.every(p => userPerms.has(p.toLowerCase()));
+    if (!ok) return false;
+  }
+  return true;
+}
+
+function filterMenu(items: MenuItem[], roleName?: string, permissions: string[] = []): MenuItem[] {
+  return items
+    .map((item) => {
+      // First, filter children recursively
+      const children = item.children ? filterMenu(item.children, roleName, permissions) : undefined;
+      const withChildren: MenuItem = { ...item, children };
+      // Then, check if the item itself is allowed
+      const allowedSelf = isAllowed(withChildren, roleName, permissions);
+      // Keep item if allowed and either has a URL or has any children left
+      const hasVisibleChildren = !!(withChildren.children && withChildren.children.length > 0);
+      if (!allowedSelf && !hasVisibleChildren) return null as unknown as MenuItem;
+      return allowedSelf || hasVisibleChildren ? withChildren : null as unknown as MenuItem;
+    })
+    .filter(Boolean) as MenuItem[];
+}
+
 function CollapsibleMenuItem({ item }: { item: MenuItem }) {
+
   const [open, setOpen] = useState(false);
   const hasChildren = item.children && item.children.length > 0;
 
@@ -123,8 +164,12 @@ function RenderMenuItems({ items }: { items: MenuItem[] }) {
 }
 
 export function AppSidebar() {
-  const { props } = usePage()
-  const { app_setting }: { app_setting: PondokPesantren } = props as unknown as { app_setting: PondokPesantren }
+  const { props } = usePage();
+  const { app_setting } = props as unknown as { app_setting: PondokPesantren };
+  const roleName = (props as any)?.auth?.user?.role?.name as string | undefined;
+  const permissions = ((props as any)?.auth?.user?.role?.permissions || []).map((p: any) => p.name as string);
+
+  const visibleItems = useMemo(() => filterMenu(items, roleName, permissions), [roleName, permissions]);
 
   return (
     <Sidebar variant="inset">
@@ -140,7 +185,7 @@ export function AppSidebar() {
           <SidebarGroupLabel>Application</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              <RenderMenuItems items={items} />
+              <RenderMenuItems items={visibleItems} />
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>

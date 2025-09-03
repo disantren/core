@@ -5,8 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\Kamar;
 use App\Models\Kelas;
 use App\Models\Santri;
-use App\Models\SantriKelas;
-use App\Models\TahunAjaran;
 use App\Models\Unit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -34,14 +32,12 @@ class SantriController extends Controller
             $units = Unit::all();
             $kelas = Kelas::all();
             $kamar = Kamar::all();
-            $tahun_ajaran = TahunAjaran::all();
 
             $query = Santri::with([
                 'unit',
                 'kamar',
                 'kelas',
                 'riwayatKelas.kelas',
-                'riwayatKelas.tahunAjaran',
             ]);
 
             Log::info($request->all());
@@ -55,11 +51,7 @@ class SantriController extends Controller
                 $kelas = Kelas::where('unit_id', $request->input('unit_id'))->get();
             }
 
-            if ($request->has('tahun_ajaran_id')) {
-                $query->whereHas('riwayatKelas', function ($query) use ($request) {
-                    $query->where('tahun_ajaran_id', $request->input('tahun_ajaran_id'));
-                });
-            }
+            // Tahun ajaran filter dihapus sementara
 
             if ($request->has('kelas_id')) {
                 $query->whereHas('kelas', function ($query) use ($request) {
@@ -98,7 +90,6 @@ class SantriController extends Controller
                 "units"  => $units,
                 "kelas"  => $kelas,
                 "kamar"  => $kamar,
-                "tahun_ajaran" => $tahun_ajaran
             ]);
         } catch (\Exception $e) {
             Log::error("SantriController@index: " . $e);
@@ -118,17 +109,60 @@ class SantriController extends Controller
         $validate = $request->validate([
             'unit_id' => 'required|exists:units,id',
             'kelas_id' => 'required|exists:kelas,id',
-            'tahun_ajaran_id' => 'required|exists:tahun_ajaran,id',
             'status' => 'required|in:aktif,nonaktif,lulus,pindah',
             'nama' => 'required|string|max:255',
             'password' => 'required|string|min:8',
         ]);
 
         $santri = Santri::create($validate);
-        $santriKelas = SantriKelas::create([
-            'santri_id' => $santri->id,
-            'kelas_id' => $request->kelas_id,
-            'tahun_ajaran_id' => $request->tahun_ajaran_id,
+        // Catatan: Histori kelas (SantriKelas) tidak dibuat sementara karena tahun ajaran dinonaktifkan
+    }
+
+    /**
+     * EDIT PAGE (GET)
+     */
+    public function edit(Santri $santri)
+    {
+        $santri->load(['unit', 'kelas', 'kamar']);
+        $units = Unit::all();
+        // Prefill kelas by current unit for initial options
+        $kelas = $santri->unit_id ? Kelas::where('unit_id', $santri->unit_id)->get() : Kelas::all();
+
+        return Inertia::render('santri-management/santri-edit', [
+            'santri' => $santri,
+            'units' => $units,
+            'kelas' => $kelas,
         ]);
+    }
+
+    /**
+     * UPDATE (PATCH)
+     */
+    public function update(Request $request, Santri $santri)
+    {
+        $validate = $request->validate([
+            'unit_id' => 'required|exists:units,id',
+            'kelas_id' => 'required|exists:kelas,id',
+            'status' => ['required', Rule::in(['aktif', 'nonaktif', 'lulus', 'pindah'])],
+            'nama' => 'required|string|max:255',
+            'nisn' => 'nullable|string|max:50',
+            'no_hp' => 'nullable|string|max:50',
+            'tanggal_lahir' => 'nullable|date',
+            'alamat' => 'nullable|string|max:255',
+            'ayah_kandung' => 'nullable|string|max:255',
+            'ibu_kandung' => 'nullable|string|max:255',
+            'no_hp_orang_tua' => 'nullable|string|max:50',
+            // password optional on update
+            'password' => 'nullable|string|min:8',
+        ]);
+
+        // If password provided, keep; else remove to avoid overriding with null
+        if (empty($validate['password'])) {
+            unset($validate['password']);
+        }
+
+        $santri->update($validate);
+
+        return redirect()->route('santri.index')->with('success', 'Data santri berhasil diperbarui');
     }
 }

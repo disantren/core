@@ -9,9 +9,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('santris', function (Blueprint $table) {
-            $table->id(); // Gue ganti `santri_id` jadi `id`
+            $table->id();   
             $table->foreignId('unit_id')->constrained('units');
-            // WARNING: Di diagram lu ga ada relasi buat kelas_id, tapi gue tambahin karena logis.
             $table->foreignId('kelas_id')->constrained('kelas'); 
             $table->string('status')->nullable();
             $table->string('nama');

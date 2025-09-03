@@ -28,16 +28,14 @@ function SantriManagement() {
     const { props } = usePage();
     const urlParams = new URLSearchParams(window.location.search);
 
-    const { santri, units, kelas, tahun_ajaran }: {
+    const { santri, units, kelas }: {
         santri: PaginatedSantri,
         units: Array<Unit>,
         kelas: Array<Kelas>,
-        tahun_ajaran: Array<TahunAjaran>,
     } = props as unknown as {
         santri: PaginatedSantri,
         units: Array<Unit>,
-        kelas: Array<Kelas>,
-        tahun_ajaran: Array<TahunAjaran>
+        kelas: Array<Kelas>
     };
 
     // Ambil default filter dari URL agar sinkron
@@ -180,8 +178,6 @@ function SantriManagement() {
                     open={showAddModal}
                     onOpenChange={setShowAddModal}
                     units={units}
-                    kelas={kelas}
-                    tahun_ajaran={tahun_ajaran}
                 />
 
                 {/* Data Table */}

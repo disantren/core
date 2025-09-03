@@ -36,6 +36,8 @@ export interface IRole {
     name: string;
     created_at: string;
     updated_at: string;
+    // Optional permissions from backend share
+    permissions?: { id: number; name: string }[];
 }
 export interface User {
     id?: number;

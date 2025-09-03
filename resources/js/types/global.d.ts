@@ -63,6 +63,9 @@ declare global {
         url?: string;
         icon?: LucideIcon;
         children?: MenuItem[];
+        // Optional gating
+        roles?: string[]; // allowed role names
+        permissions?: string[]; // required permission names
     }
 
 

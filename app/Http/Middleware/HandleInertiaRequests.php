@@ -39,12 +39,36 @@ class HandleInertiaRequests extends Middleware
     {
         [$message, $author] = str(Inspiring::quotes()->random())->explode('-');
 
+        $user = $request->user();
+        if ($user) {
+            // Pastikan relasi role dan permissions dimuat untuk dibagikan ke frontend
+            $user->loadMissing('role.permissions');
+        }
+
         return [
             ...parent::share($request),
             'name' => config('app.name'),
             'quote' => ['message' => trim($message), 'author' => trim($author)],
             'auth' => [
-                'user' => $request->user(),
+                'user' => $user ? [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'email_verified_at' => $user->email_verified_at,
+                    'role_id' => $user->role_id,
+                    'role' => $user->role ? [
+                        'id' => $user->role->id,
+                        'name' => $user->role->name,
+                        // Kirim daftar permissions milik role
+                        'permissions' => $user->role->permissions
+                            ->map(fn ($p) => [
+                                'id' => $p->id,
+                                'name' => $p->name,
+                            ])
+                            ->values()
+                            ->all(),
+                    ] : null,
+                ] : null,
             ],
             'ziggy' => fn (): array => [
                 ...(new Ziggy)->toArray(),
