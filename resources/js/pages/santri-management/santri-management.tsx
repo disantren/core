@@ -124,28 +124,35 @@ function SantriManagement() {
                         <CardTitle className="text-lg">Filter & Pencarian</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div className="flex flex-col md:flex-row gap-4 items-end">
+                        <div
+                            className="
+      grid gap-3 sm:gap-4
+      grid-cols-1
+      md:grid-cols-[1fr_auto_auto_auto]
+      items-end
+    "
+                        >
                             {/* Search */}
-                            <div className="flex-1">
+                            <div className="w-full">
                                 <label className="block text-sm font-medium text-gray-700 mb-1">
                                     Pencarian
                                 </label>
                                 <div className="relative">
-                                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-4 w-4" />
                                     <Input
                                         placeholder="Cari nama atau NISN..."
                                         value={filters.search}
                                         onChange={(e) => setFilters({ ...filters, search: e.target.value })}
-                                        className="pl-10"
+                                        className="pl-10 w-full"
                                     />
                                 </div>
                             </div>
 
                             {/* Unit */}
-                            <div>
+                            <div className="w-full md:w-[180px] lg:w-[220px]">
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Unit</label>
                                 <Select value={filters.unit_id} onValueChange={(v) => handleFilterChange("unit_id", v)}>
-                                    <SelectTrigger className="w-[180px]">
+                                    <SelectTrigger className="w-full">
                                         <SelectValue placeholder="Semua Unit" />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -160,17 +167,17 @@ function SantriManagement() {
                             </div>
 
                             {/* Kelas */}
-                            <div>
+                            <div className="w-full md:w-[180px] lg:w-[220px]">
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Kelas</label>
                                 <Select value={filters.kelas_id} onValueChange={(v) => handleFilterChange("kelas_id", v)}>
-                                    <SelectTrigger className="w-[180px]">
+                                    <SelectTrigger className="w-full">
                                         <SelectValue placeholder="Semua Kelas" />
                                     </SelectTrigger>
                                     <SelectContent>
                                         <SelectItem value="all">Semua Kelas</SelectItem>
-                                        {kelas.map((kelas) => (
-                                            <SelectItem key={kelas.id} value={kelas.id.toString()}>
-                                                {kelas.nama_kelas}
+                                        {kelas.map((k) => (
+                                            <SelectItem key={k.id} value={k.id.toString()}>
+                                                {k.nama_kelas}
                                             </SelectItem>
                                         ))}
                                     </SelectContent>
@@ -178,9 +185,14 @@ function SantriManagement() {
                             </div>
 
                             {/* Add Button */}
-                            <Button onClick={() => setShowAddModal(true)} className="bg-blue-600 hover:bg-blue-700">
-                                <Plus className="h-4 w-4 mr-2" /> Tambah Santri
-                            </Button>
+                            <div className="w-full md:w-auto">
+                                <Button
+                                    onClick={() => setShowAddModal(true)}
+                                    className="w-full md:w-auto"
+                                >
+                                    <Plus className="h-4 w-4 mr-2" /> Tambah Santri
+                                </Button>
+                            </div>
                         </div>
                     </CardContent>
                 </Card>
@@ -213,6 +225,7 @@ function SantriManagement() {
                                     <Table>
                                         <TableHeader>
                                             <TableRow>
+                                                <TableHead>NIS</TableHead>
                                                 <TableHead>Nama</TableHead>
                                                 <TableHead>NISN</TableHead>
                                                 <TableHead>Unit</TableHead>
@@ -226,6 +239,7 @@ function SantriManagement() {
                                             {santri.data.length > 0 ? (
                                                 santri.data.map((item) => (
                                                     <TableRow key={item.id}>
+                                                        <TableCell className="font-mono">{item.nis || '-'}</TableCell>
                                                         <TableCell className="font-medium">{item.nama}</TableCell>
                                                         <TableCell>{item.nisn}</TableCell>
                                                         <TableCell>{item.unit?.nama_unit || "-"}</TableCell>

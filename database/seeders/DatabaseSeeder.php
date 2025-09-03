@@ -21,6 +21,7 @@ class DatabaseSeeder extends Seeder
             // SantriSeeder::class,
             UserSeeder::class,
             AccountingSeeder::class,
+            BackfillSantriNisSeeder::class,
         ]);
     }
 }

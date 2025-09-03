@@ -113,6 +113,7 @@ declare global {
     export interface Santri {
         id: number;
         nama: string;
+        nis?: string;
         tanggal_lahir: string;
         alamat: string;
         ibu_kandung: string;

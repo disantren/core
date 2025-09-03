@@ -5,8 +5,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   return (
     <SidebarProvider>
       <Toaster />
-      <AppSidebar />
       <SidebarTrigger />
+      <AppSidebar />
       <main className="flex items-center justify-center w-full">
         <SidebarInset>
           {children}
