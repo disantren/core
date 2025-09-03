@@ -1,4 +1,4 @@
-eSantren Core
+Disantren Core
 ==============
 
 Aplikasi Laravel + Inertia (React) untuk mengelola operasional pesantren: pengguna, santri, kelas, kamar, pengaturan aplikasi, dan akuntansi sederhana (jurnal & pembayaran SPP).
