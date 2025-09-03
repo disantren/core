@@ -1,71 +1,23 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import DashboardLayout from "@/layouts/Dashboard/dashboard-layout";
-import { usePage, router } from "@inertiajs/react";
-import { useEffect, useMemo, useState } from "react";
+import { usePage } from "@inertiajs/react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
-import { toast } from "sonner";
 
 type Account = { id: number; code: string; name: string; type: string; parent_id?: number | null };
 type LedgerEntry = { id: number; entry_date: string; description?: string; debit: string; credit: string; reference?: string; account: Account; santri?: { id: number; nama: string } };
 type StudentPayment = { id: number; amount: string; status: string; method: string; paid_at?: string | null; created_at: string; santri: { id: number; nama: string } };
 
+
 export default function AkuntansiDashboard() {
   const { props } = usePage();
-  const { stats, accounts, recent_ledger_entries, recent_student_payments, santris } = props as any;
-
-  useEffect(() => {
-    const errors = (props as any).errors || {};
-    const keys = Object.keys(errors);
-    if (keys.length) {
-      keys.forEach(k => toast.error(errors[k], { position: "top-right" }));
-    }
-  }, [props]);
+  const { stats, recent_ledger_entries, recent_student_payments } = props as any;
 
   const currency = (n: number | string) => {
     const v = typeof n === 'string' ? parseFloat(n) : n;
     return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(v || 0);
   };
-
-  // Forms state
-  const [accountForm, setAccountForm] = useState({ code: "", name: "", type: "asset", parent_id: "" });
-  const [entryForm, setEntryForm] = useState({ account_id: "", entry_date: new Date().toISOString().slice(0,10), description: "", debit: "", credit: "", santri_id: "", reference: "" });
-  const [paymentForm, setPaymentForm] = useState({ santri_id: "", amount: "", status: "paid", note: "" });
-
-  const accountTypes = [
-    { value: "asset", label: "Aset" },
-    { value: "liability", label: "Liabilitas" },
-    { value: "equity", label: "Ekuitas" },
-    { value: "revenue", label: "Pendapatan" },
-    { value: "expense", label: "Beban" },
-  ];
-
-  const onSubmitAccount = () => {
-    const payload: any = { ...accountForm };
-    if (!payload.parent_id || payload.parent_id === 'none') delete payload.parent_id;
-    router.post(route('akuntansi.create_account'), payload, {
-      onSuccess: () => toast.success('Akun berhasil dibuat', { position: "top-right" })
-    });
-  };
-
-  const onSubmitEntry = () => {
-    const payload: any = { ...entryForm };
-    if (!payload.santri_id || payload.santri_id === 'none') delete payload.santri_id;
-    router.post(route('akuntansi.create_ledger'), payload, {
-      onSuccess: () => toast.success('Jurnal berhasil dicatat', { position: "top-right" })
-    });
-  };
-
-  const onSubmitPayment = () => {
-    router.post(route('akuntansi.create_payment'), paymentForm, {
-      onSuccess: () => toast.success('Pembayaran dummy tersimpan', { position: "top-right" })
-    });
-  };
-
-  const accountOptions = useMemo(() => (accounts as Account[]).map(a => ({ value: String(a.id), label: `${a.code} - ${a.name}` })), [accounts]);
-  const parentOptions = useMemo(() => [{ value: "none", label: "(Tanpa Induk)" }, ...accountOptions], [accountOptions]);
 
   return (
     <DashboardLayout>
@@ -94,84 +46,17 @@ export default function AkuntansiDashboard() {
           </Card>
         </div>
 
-        <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 mb-8">
-          <Card>
-            <CardHeader><CardTitle>Buat Akun</CardTitle></CardHeader>
-            <CardContent className="space-y-3">
-              <Input placeholder="Kode (mis. 4-100)" value={accountForm.code} onChange={e => setAccountForm(s => ({ ...s, code: e.target.value }))} />
-              <Input placeholder="Nama Akun" value={accountForm.name} onChange={e => setAccountForm(s => ({ ...s, name: e.target.value }))} />
-              <Select value={accountForm.type} onValueChange={v => setAccountForm(s => ({ ...s, type: v }))}>
-                <SelectTrigger><SelectValue placeholder="Tipe Akun" /></SelectTrigger>
-                <SelectContent>
-                  {accountTypes.map(t => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}
-                </SelectContent>
-              </Select>
-              <Select value={accountForm.parent_id} onValueChange={v => setAccountForm(s => ({ ...s, parent_id: v }))}>
-                <SelectTrigger><SelectValue placeholder="Akun Induk (opsional)" /></SelectTrigger>
-                <SelectContent>
-                  {parentOptions.map(opt => <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>)}
-                </SelectContent>
-              </Select>
-              <Button onClick={onSubmitAccount}>Simpan</Button>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader><CardTitle>Catat Jurnal</CardTitle></CardHeader>
-            <CardContent className="space-y-3">
-              <Select value={entryForm.account_id} onValueChange={v => setEntryForm(s => ({ ...s, account_id: v }))}>
-                <SelectTrigger><SelectValue placeholder="Pilih Akun" /></SelectTrigger>
-                <SelectContent>
-                  {accountOptions.map(opt => <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>)}
-                </SelectContent>
-              </Select>
-              <Input type="date" value={entryForm.entry_date} onChange={e => setEntryForm(s => ({ ...s, entry_date: e.target.value }))} />
-              <Input placeholder="Deskripsi" value={entryForm.description} onChange={e => setEntryForm(s => ({ ...s, description: e.target.value }))} />
-              <div className="grid grid-cols-2 gap-2">
-                <Input placeholder="Debit" type="number" value={entryForm.debit} onChange={e => setEntryForm(s => ({ ...s, debit: e.target.value }))} />
-                <Input placeholder="Kredit" type="number" value={entryForm.credit} onChange={e => setEntryForm(s => ({ ...s, credit: e.target.value }))} />
-              </div>
-              <Select value={entryForm.santri_id} onValueChange={v => setEntryForm(s => ({ ...s, santri_id: v }))}>
-                <SelectTrigger><SelectValue placeholder="Santri (opsional)" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">(Kosong)</SelectItem>
-                  {(santris as { id: number; nama: string }[]).map((s) => (
-                    <SelectItem key={s.id} value={String(s.id)}>{s.nama}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Input placeholder="Referensi (opsional)" value={entryForm.reference} onChange={e => setEntryForm(s => ({ ...s, reference: e.target.value }))} />
-              <Button onClick={onSubmitEntry}>Simpan</Button>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader><CardTitle>Pembayaran Santri (Dummy)</CardTitle></CardHeader>
-            <CardContent className="space-y-3">
-              <Select value={paymentForm.santri_id} onValueChange={v => setPaymentForm(s => ({ ...s, santri_id: v }))}>
-                <SelectTrigger><SelectValue placeholder="Pilih Santri" /></SelectTrigger>
-                <SelectContent>
-                  {(santris as { id: number; nama: string }[]).map((s) => (
-                    <SelectItem key={s.id} value={String(s.id)}>{s.nama}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Input placeholder="Jumlah" type="number" value={paymentForm.amount} onChange={e => setPaymentForm(s => ({ ...s, amount: e.target.value }))} />
-              <Select value={paymentForm.status} onValueChange={v => setPaymentForm(s => ({ ...s, status: v }))}>
-                <SelectTrigger><SelectValue placeholder="Status" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="paid">Lunas</SelectItem>
-                  <SelectItem value="pending">Menunggu</SelectItem>
-                  <SelectItem value="failed">Gagal</SelectItem>
-                </SelectContent>
-              </Select>
-              <Input placeholder="Catatan (opsional)" value={paymentForm.note} onChange={e => setPaymentForm(s => ({ ...s, note: e.target.value }))} />
-              <Button onClick={onSubmitPayment}>Simpan</Button>
-            </CardContent>
-          </Card>
-        </div>
-
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <Card className="lg:col-span-2 mb-4">
+            <CardHeader>
+              <CardTitle>Menu Akuntansi</CardTitle>
+            </CardHeader>
+            <CardContent className="flex gap-4">
+              <Button onClick={() => window.location.href = route('akuntansi.akun')}>Manajemen Akun</Button>
+              <Button onClick={() => window.location.href = route('akuntansi.jurnal')}>Jurnal</Button>
+              <Button onClick={() => window.location.href = route('akuntansi.pembayaran')}>Pembayaran</Button>
+            </CardContent>
+          </Card>
           <Card>
             <CardHeader><CardTitle>Entri Buku Besar Terbaru</CardTitle></CardHeader>
             <CardContent>

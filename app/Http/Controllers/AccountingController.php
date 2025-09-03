@@ -34,20 +34,18 @@ class AccountingController extends Controller
         $paymentFailedCount = StudentPayment::where('status', 'failed')->count();
         $paymentPaidCount = StudentPayment::where('status', 'paid')->count();
 
+        // Recent entries
         $recentLedgerEntries = LedgerEntry::with(['account', 'santri'])
             ->orderByDesc('entry_date')
             ->orderByDesc('id')
-            ->limit(10)
+            ->limit(5)
             ->get();
 
-        $recentPayments = StudentPayment::with('santri')
+        $recentStudentPayments = StudentPayment::with('santri')
             ->orderByDesc('paid_at')
             ->orderByDesc('created_at')
-            ->limit(10)
+            ->limit(5)
             ->get();
-
-        $accounts = Account::orderBy('code')->get();
-        $santriOptions = Santri::select('id', 'nama')->orderBy('nama')->limit(50)->get();
 
         return Inertia::render('akuntansi/akuntansi-dashboard', [
             'stats' => [
@@ -61,10 +59,8 @@ class AccountingController extends Controller
                     'failed_count' => $paymentFailedCount,
                 ],
             ],
-            'accounts' => $accounts,
             'recent_ledger_entries' => $recentLedgerEntries,
-            'recent_student_payments' => $recentPayments,
-            'santris' => $santriOptions,
+            'recent_student_payments' => $recentStudentPayments,
         ]);
     }
 
@@ -82,7 +78,7 @@ class AccountingController extends Controller
 
         Account::create($validated);
 
-        return redirect()->route('akuntansi.dashboard');
+        return redirect()->route('akuntansi.akun');
     }
 
     /**
@@ -114,7 +110,7 @@ class AccountingController extends Controller
             'credit' => $credit,
         ]);
 
-        return redirect()->route('akuntansi.dashboard');
+        return redirect()->route('akuntansi.jurnal');
     }
 
     /**
@@ -143,6 +139,133 @@ class AccountingController extends Controller
             'paid_at' => $paidAt,
         ]);
 
-        return redirect()->route('akuntansi.dashboard');
+        return redirect()->route('akuntansi.pembayaran');
+    }
+
+    /**
+     * Account management page
+     */
+    public function akun(Request $request)
+    {
+        $accounts = Account::with('parent')->orderBy('code')->get();
+        return Inertia::render('akuntansi/akun/index', [
+            'accounts' => $accounts,
+        ]);
+    }
+
+    /**
+     * Journal entries page
+     */
+    public function jurnal(Request $request)
+    {
+        $query = LedgerEntry::with(['account', 'santri'])->orderByDesc('entry_date')->orderByDesc('id');
+        if ($request->filled('account_id')) {
+            $query->where('account_id', $request->integer('account_id'));
+        }
+        if ($request->filled('santri_id')) {
+            $query->where('santri_id', $request->integer('santri_id'));
+        }
+        $perPage = (int) $request->input('per_page', 15);
+        $entries = $query->paginate($perPage)->withQueryString();
+
+        $accounts = Account::orderBy('code')->get();
+        $santris = Santri::select('id', 'nama')->orderBy('nama')->get();
+
+        return Inertia::render('akuntansi/jurnal/index', [
+            'ledger_entries' => $entries,
+            'accounts' => $accounts,
+            'santris' => $santris,
+        ]);
+    }
+
+    /**
+     * Student payments page
+     */
+    public function pembayaran(Request $request)
+    {
+        $query = StudentPayment::with('santri')->orderByDesc('paid_at')->orderByDesc('created_at');
+        if ($request->filled('status')) {
+            $query->where('status', $request->string('status'));
+        }
+        if ($request->filled('santri_id')) {
+            $query->where('santri_id', $request->integer('santri_id'));
+        }
+        $perPage = (int) $request->input('per_page', 15);
+        $payments = $query->paginate($perPage)->withQueryString();
+
+        $santris = Santri::select('id', 'nama')->orderBy('nama')->get();
+
+        return Inertia::render('akuntansi/pembayaran/index', [
+            'student_payments' => $payments,
+            'santris' => $santris,
+        ]);
+    }
+
+    // Update/Delete endpoints
+    public function updateAccount(Request $request, Account $account)
+    {
+        $validated = $request->validate([
+            'code' => 'required|string|max:50|unique:accounts,code,' . $account->id,
+            'name' => 'required|string|max:255',
+            'type' => 'required|in:asset,liability,equity,revenue,expense',
+            'parent_id' => 'nullable|exists:accounts,id',
+        ]);
+
+        $account->update($validated);
+        return redirect()->route('akuntansi.akun');
+    }
+
+    public function deleteAccount(Account $account)
+    {
+        $account->delete();
+        return back();
+    }
+
+    public function updateLedgerEntry(Request $request, LedgerEntry $entry)
+    {
+        $validated = $request->validate([
+            'account_id' => 'required|exists:accounts,id',
+            'entry_date' => 'required|date',
+            'description' => 'nullable|string',
+            'debit' => 'nullable|numeric|min:0',
+            'credit' => 'nullable|numeric|min:0',
+            'santri_id' => 'nullable|exists:santris,id',
+            'reference' => 'nullable|string|max:100',
+        ]);
+        $debit = (float) ($validated['debit'] ?? 0);
+        $credit = (float) ($validated['credit'] ?? 0);
+        if ($debit <= 0 && $credit <= 0) {
+            return back()->withErrors(['debit' => 'Debit atau Credit harus diisi > 0']);
+        }
+        if ($debit > 0 && $credit > 0) {
+            return back()->withErrors(['debit' => 'Hanya salah satu: Debit ATAU Credit']);
+        }
+        $entry->update($validated + ['debit' => $debit, 'credit' => $credit]);
+        return redirect()->route('akuntansi.jurnal');
+    }
+
+    public function deleteLedgerEntry(LedgerEntry $entry)
+    {
+        $entry->delete();
+        return back();
+    }
+
+    public function updatePayment(Request $request, StudentPayment $payment)
+    {
+        $validated = $request->validate([
+            'santri_id' => 'required|exists:santris,id',
+            'amount' => 'required|numeric|min:0',
+            'status' => 'required|in:pending,paid,failed',
+            'note' => 'nullable|string',
+        ]);
+        $paidAt = $validated['status'] === 'paid' ? now() : null;
+        $payment->update($validated + ['paid_at' => $paidAt]);
+        return redirect()->route('akuntansi.pembayaran');
+    }
+
+    public function deletePayment(StudentPayment $payment)
+    {
+        $payment->delete();
+        return back();
     }
 }

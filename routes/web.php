@@ -150,6 +150,32 @@ Route::middleware('auth')->prefix('dashboard')->group(function () {
 
     Route::post('/akuntansi/pembayaran', [AccountingController::class, 'createDummyPayment'])
         ->name('akuntansi.create_payment');
+
+    // Akuntansi CRUD pages
+
+    Route::prefix('akuntansi')->name('akuntansi.')->group(function () {
+        Route::get('/', [AccountingController::class, 'index'])->name('dashboard');
+
+        // Page routes
+        Route::get('/akun', [AccountingController::class, 'akun'])->name('akun');
+        Route::get('/jurnal', [AccountingController::class, 'jurnal'])->name('jurnal');
+        Route::get('/pembayaran', [AccountingController::class, 'pembayaran'])->name('pembayaran');
+
+        // Account CRUD
+        Route::post('/akun', [AccountingController::class, 'createAccount'])->name('create_account');
+        Route::put('/akun/{account}', [AccountingController::class, 'updateAccount'])->name('update_account');
+        Route::delete('/akun/{account}', [AccountingController::class, 'deleteAccount'])->name('delete_account');
+
+        // Ledger Entry CRUD
+        Route::post('/jurnal', [AccountingController::class, 'createLedgerEntry'])->name('create_ledger');
+        Route::put('/jurnal/{entry}', [AccountingController::class, 'updateLedgerEntry'])->name('update_ledger');
+        Route::delete('/jurnal/{entry}', [AccountingController::class, 'deleteLedgerEntry'])->name('delete_ledger');
+
+        // Payment CRUD
+        Route::post('/pembayaran', [AccountingController::class, 'createDummyPayment'])->name('create_payment');
+        Route::put('/pembayaran/{payment}', [AccountingController::class, 'updatePayment'])->name('update_payment');
+        Route::delete('/pembayaran/{payment}', [AccountingController::class, 'deletePayment'])->name('delete_payment');
+    });
 });
 
 // Include default Laravel route files
