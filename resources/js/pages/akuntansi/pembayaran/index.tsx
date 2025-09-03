@@ -60,6 +60,15 @@ export default function PembayaranIndex() {
     return [] as Arrear[];
   }, [arrears]);
 
+  // Search arrears
+  const [searchArrears, setSearchArrears] = useState("");
+  const filteredArrears = useMemo(() => {
+    const list = arrearsList;
+    const q = searchArrears.trim().toLowerCase();
+    if (!q) return list;
+    return list.filter((r) => (r.nama || "").toLowerCase().includes(q));
+  }, [arrearsList, searchArrears]);
+
   const formatDate = (s?: string | null) => {
     if (!s) return '';
     try {
@@ -182,9 +191,18 @@ export default function PembayaranIndex() {
 
           <Card className="lg:col-span-3">
             <CardHeader>
-              <CardTitle>Kekurangan SPP (Sejak Awal Tahun)</CardTitle>
+              <CardTitle>
+                Kekurangan SPP (Sejak Awal Tahun) ({filteredArrears.length})
+              </CardTitle>
             </CardHeader>
             <CardContent>
+              <div className="mb-3">
+                <Input
+                  placeholder="Cari santri yang menunggak..."
+                  value={searchArrears}
+                  onChange={(e) => setSearchArrears(e.target.value)}
+                />
+              </div>
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -196,7 +214,7 @@ export default function PembayaranIndex() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {arrearsList.map((r) => (
+                  {filteredArrears.map((r) => (
                     <TableRow key={r.id}>
                       <TableCell>{r.nama}</TableCell>
                       <TableCell>
@@ -212,7 +230,7 @@ export default function PembayaranIndex() {
                       </TableCell>
                     </TableRow>
                   ))}
-                  {arrearsList.length === 0 && (
+                  {filteredArrears.length === 0 && (
                     <TableRow>
                       <TableCell colSpan={5} className="text-center">Tidak ada tunggakan</TableCell>
                     </TableRow>
