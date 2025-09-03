@@ -110,23 +110,6 @@ function AppSetting({ data }: { data: AppSettingsProps }) {
                                 />
                             </div>
                         </div>
-                        {/* SPP Bulanan */}
-                        <div className="space-y-2">
-                            <Label htmlFor="spp_monthly_price">Harga SPP Bulanan (Rp)</Label>
-                            <Input
-                                id="spp_monthly_price"
-                                name="spp_monthly_price"
-                                type="number"
-                                value={String(formData.spp_monthly_price ?? '')}
-                                onChange={handleInputChange}
-                                placeholder="Contoh: 150000"
-                            />
-                            {errors?.spp_monthly_price && (
-                                <Alert variant="destructive">
-                                    <AlertTitle>{errors?.spp_monthly_price}</AlertTitle>
-                                </Alert>
-                            )}
-                        </div>
                         {/* Nama Pondok Pesantren */}
                         <div className="space-y-2">
                             <Label htmlFor="nama_pondok_pesantren">Nama Lembaga</Label>

@@ -14,12 +14,19 @@ class UserSeeder extends Seeder
     public function run(): void
     {
         $role = Role::where("name", "superadmin")->first();
+        $akuntan = Role::where("name", "Akuntan")->first();
 
+        // $user = User::create([
+        //     "name" => "superadmin",
+        //     "role_id" => $role->id,
+        //     "email" => "superadmin@superadmin.com",
+        //     "password" => bcrypt("superadmin"),
+        // ]);
         $user = User::create([
-            "name" => "superadmin",
-            "role_id" => $role->id,
-            "email" => "superadmin@superadmin.com",
-            "password" => bcrypt("superadmin"),
+            "name" => "akuntan",
+            "role_id" => $akuntan->id,
+            "email" => "akuntan@akuntan.com",
+            "password" => bcrypt("akuntan"),
         ]);
 
 

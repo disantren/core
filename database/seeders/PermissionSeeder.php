@@ -22,6 +22,11 @@ class PermissionSeeder extends Seeder
             'kelas' => ['view', 'create', 'edit'],
             'kamar' => ['view', 'create', 'edit'],
             'santri' => ['view', 'create', 'edit'],
+            // Akuntansi
+            'akuntansi' => ['view'],
+            'akuntansi.akun' => ['view', 'create', 'update', 'delete'],
+            'akuntansi.jurnal' => ['view', 'create', 'update', 'delete'],
+            'akuntansi.pembayaran' => ['view', 'create', 'update', 'delete'],
         ];
 
         $permissions = [];
@@ -37,4 +42,3 @@ class PermissionSeeder extends Seeder
         }
     }
 }
-

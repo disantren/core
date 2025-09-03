@@ -17,6 +17,7 @@ class RolePermissionSeeder extends Seeder
             'Pengasuh',
             'Guru',
             'Pegawai',
+            'Akuntan',
         ];
 
         $roleModels = [];
@@ -38,6 +39,11 @@ class RolePermissionSeeder extends Seeder
             ...$perm('kelas', ['view', 'create', 'edit']),
             ...$perm('kamar', ['view', 'create', 'edit']),
             ...$perm('santri', ['view', 'create', 'edit']),
+            // Akuntansi
+            ...$perm('akuntansi', ['view']),
+            ...$perm('akuntansi.akun', ['view', 'create', 'update', 'delete']),
+            ...$perm('akuntansi.jurnal', ['view', 'create', 'update', 'delete']),
+            ...$perm('akuntansi.pembayaran', ['view', 'create', 'update', 'delete']),
         ];
 
         $permIdsByName = Permission::whereIn('name', $allPermissionNames)
@@ -75,6 +81,14 @@ class RolePermissionSeeder extends Seeder
                 ...$perm('units', ['view', 'create', 'edit']),
                 ...$perm('app-setting', ['view', 'update']),
             ],
+
+            // Accountant: full access to accounting module
+            'Akuntan' => [
+                ...$perm('akuntansi', ['view']),
+                ...$perm('akuntansi.akun', ['view', 'create', 'update', 'delete']),
+                ...$perm('akuntansi.jurnal', ['view', 'create', 'update', 'delete']),
+                ...$perm('akuntansi.pembayaran', ['view', 'create', 'update', 'delete']),
+            ],
         ];
 
         foreach ($policy as $roleName => $permissionNames) {
@@ -90,4 +104,3 @@ class RolePermissionSeeder extends Seeder
         }
     }
 }
-

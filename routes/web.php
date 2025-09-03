@@ -143,41 +143,71 @@ Route::middleware('auth')->prefix('dashboard')->group(function () {
 
     // Akuntansi
     Route::get('/akuntansi', [AccountingController::class, 'index'])
+        ->middleware('permission:akuntansi.view')
         ->name('akuntansi.dashboard');
 
     Route::post('/akuntansi/akun', [AccountingController::class, 'createAccount'])
+        ->middleware('permission:akuntansi.akun.create')
         ->name('akuntansi.create_account');
 
     Route::post('/akuntansi/jurnal', [AccountingController::class, 'createLedgerEntry'])
+        ->middleware('permission:akuntansi.jurnal.create')
         ->name('akuntansi.create_ledger');
 
     Route::post('/akuntansi/pembayaran', [AccountingController::class, 'createDummyPayment'])
+        ->middleware('permission:akuntansi.pembayaran.create')
         ->name('akuntansi.create_payment');
 
     // Akuntansi CRUD pages
 
     Route::prefix('akuntansi')->name('akuntansi.')->group(function () {
-        Route::get('/', [AccountingController::class, 'index'])->name('dashboard');
+        Route::get('/', [AccountingController::class, 'index'])
+            ->middleware('permission:akuntansi.view')
+            ->name('dashboard');
 
         // Page routes
-        Route::get('/akun', [AccountingController::class, 'akun'])->name('akun');
-        Route::get('/jurnal', [AccountingController::class, 'jurnal'])->name('jurnal');
-        Route::get('/pembayaran', [AccountingController::class, 'pembayaran'])->name('pembayaran');
+        Route::get('/akun', [AccountingController::class, 'akun'])
+            ->middleware('permission:akuntansi.akun.view')
+            ->name('akun');
+        Route::get('/jurnal', [AccountingController::class, 'jurnal'])
+            ->middleware('permission:akuntansi.jurnal.view')
+            ->name('jurnal');
+        Route::get('/pembayaran', [AccountingController::class, 'pembayaran'])
+            ->middleware('permission:akuntansi.pembayaran.view')
+            ->name('pembayaran');
 
         // Account CRUD
-        Route::post('/akun', [AccountingController::class, 'createAccount'])->name('create_account');
-        Route::put('/akun/{account}', [AccountingController::class, 'updateAccount'])->name('update_account');
-        Route::delete('/akun/{account}', [AccountingController::class, 'deleteAccount'])->name('delete_account');
+        Route::post('/akun', [AccountingController::class, 'createAccount'])
+            ->middleware('permission:akuntansi.akun.create')
+            ->name('create_account');
+        Route::put('/akun/{account}', [AccountingController::class, 'updateAccount'])
+            ->middleware('permission:akuntansi.akun.update')
+            ->name('update_account');
+        Route::delete('/akun/{account}', [AccountingController::class, 'deleteAccount'])
+            ->middleware('permission:akuntansi.akun.delete')
+            ->name('delete_account');
 
         // Ledger Entry CRUD
-        Route::post('/jurnal', [AccountingController::class, 'createLedgerEntry'])->name('create_ledger');
-        Route::put('/jurnal/{entry}', [AccountingController::class, 'updateLedgerEntry'])->name('update_ledger');
-        Route::delete('/jurnal/{entry}', [AccountingController::class, 'deleteLedgerEntry'])->name('delete_ledger');
+        Route::post('/jurnal', [AccountingController::class, 'createLedgerEntry'])
+            ->middleware('permission:akuntansi.jurnal.create')
+            ->name('create_ledger');
+        Route::put('/jurnal/{entry}', [AccountingController::class, 'updateLedgerEntry'])
+            ->middleware('permission:akuntansi.jurnal.update')
+            ->name('update_ledger');
+        Route::delete('/jurnal/{entry}', [AccountingController::class, 'deleteLedgerEntry'])
+            ->middleware('permission:akuntansi.jurnal.delete')
+            ->name('delete_ledger');
 
         // Payment CRUD
-        Route::post('/pembayaran', [AccountingController::class, 'createDummyPayment'])->name('create_payment');
-        Route::put('/pembayaran/{payment}', [AccountingController::class, 'updatePayment'])->name('update_payment');
-        Route::delete('/pembayaran/{payment}', [AccountingController::class, 'deletePayment'])->name('delete_payment');
+        Route::post('/pembayaran', [AccountingController::class, 'createDummyPayment'])
+            ->middleware('permission:akuntansi.pembayaran.create')
+            ->name('create_payment');
+        Route::put('/pembayaran/{payment}', [AccountingController::class, 'updatePayment'])
+            ->middleware('permission:akuntansi.pembayaran.update')
+            ->name('update_payment');
+        Route::delete('/pembayaran/{payment}', [AccountingController::class, 'deletePayment'])
+            ->middleware('permission:akuntansi.pembayaran.delete')
+            ->name('delete_payment');
     });
 
     // Attendance (Absensi)
@@ -194,10 +224,6 @@ Route::middleware('auth')->prefix('dashboard')->group(function () {
 require __DIR__ . '/settings.php';
 require __DIR__ . '/auth.php';
 
-// Backward-compatibility for typo route: /dahsboard/akuntansi
-Route::get('/dahsboard/akuntansi', function () {
-    return redirect()->route('akuntansi.dashboard');
-})->middleware('auth');
 
 // Santri Auth + Attendance routes
 Route::prefix('santri')->group(function () {
@@ -207,7 +233,8 @@ Route::prefix('santri')->group(function () {
     });
 
     Route::middleware(['auth:santri', 'feature.attendance'])->group(function () {
-        Route::get('/', function () { return redirect('/santri/absen'); });
+        Route::get('/', function () {
+            return redirect('/santri/absen'); });
         Route::get('/absen', [SantriAttendanceController::class, 'index'])->name('santri.absen');
         Route::post('/absen', [SantriAttendanceController::class, 'mark'])->name('santri.absen.mark');
         Route::post('/logout', [SantriAuthController::class, 'logout'])->name('santri.logout');
