@@ -23,6 +23,16 @@ import { usePage, router } from "@inertiajs/react";
 import { useState, useEffect } from "react";
 import { Search, Plus, Edit, Trash2, Eye } from "lucide-react";
 import ModalAddSantri from "./components/modal-add-santri";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 function SantriManagement() {
     const { props } = usePage();
@@ -47,6 +57,8 @@ function SantriManagement() {
     });
     const [isLoading, setIsLoading] = useState(false);
     const [showAddModal, setShowAddModal] = useState(false);
+    const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+    const [deleteTarget, setDeleteTarget] = useState<{ id: number; nama: string } | null>(null);
 
     type QueryParams = {
         [key: string]: string | number | boolean | undefined;
@@ -232,9 +244,8 @@ function SantriManagement() {
                                                                     variant="outline"
                                                                     size="sm"
                                                                     onClick={() => {
-                                                                        if (confirm("Apakah Anda yakin ingin menghapus santri ini?")) {
-                                                                            router.delete(route("santri.destroy", item.id));
-                                                                        }
+                                                                        setDeleteTarget({ id: item.id, nama: item.nama });
+                                                                        setIsDeleteOpen(true);
                                                                     }}
                                                                     className="text-red-600 hover:text-red-700"
                                                                 >
@@ -298,8 +309,58 @@ function SantriManagement() {
                     </CardContent>
                 </Card>
             </div>
+
+            {/* Delete Confirmation Dialog */}
+            <DeleteConfirmationDialog
+                isOpen={isDeleteOpen}
+                setIsOpen={(open) => {
+                    setIsDeleteOpen(open);
+                    if (!open) setDeleteTarget(null);
+                }}
+                name={deleteTarget?.nama}
+                onConfirm={() => {
+                    if (!deleteTarget) return;
+                    router.delete(route("santri.destroy", deleteTarget.id), {
+                        preserveState: true,
+                        preserveScroll: true,
+                        onFinish: () => setIsDeleteOpen(false),
+                    });
+                }}
+            />
         </DashboardLayout>
     );
 }
 
 export default SantriManagement;
+
+// DeleteConfirmationDialog component for confirming santri deletion
+function DeleteConfirmationDialog({
+    isOpen,
+    setIsOpen,
+    onConfirm,
+    name,
+}: {
+    isOpen: boolean;
+    setIsOpen: (open: boolean) => void;
+    onConfirm: React.MouseEventHandler<HTMLButtonElement> | undefined;
+    name?: string;
+}) {
+    return (
+        <AlertDialog open={isOpen} onOpenChange={setIsOpen}>
+            <AlertDialogContent>
+                <AlertDialogHeader>
+                    <AlertDialogTitle>Hapus santri?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                        {`Tindakan ini akan mengarsipkan (soft delete) data santri${name ? ` "${name}"` : ""}. Anda dapat memulihkannya nanti jika diperlukan.`}
+                    </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                    <AlertDialogCancel>Batal</AlertDialogCancel>
+                    <AlertDialogAction onClick={onConfirm} className="bg-red-600 hover:bg-red-700">
+                        Hapus
+                    </AlertDialogAction>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
+    );
+}

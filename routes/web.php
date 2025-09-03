@@ -131,6 +131,11 @@ Route::middleware('auth')->prefix('dashboard')->group(function () {
     Route::patch('/santri/{santri}', [SantriController::class, 'update'])
         ->middleware('permission:santri.edit')
         ->name('santri.update');
+
+    // Santri Destroy (Soft Delete)
+    Route::delete('/santri/{santri}', [SantriController::class, 'destroy'])
+        ->middleware('permission:santri.edit')
+        ->name('santri.destroy');
 });
 
 // Include default Laravel route files

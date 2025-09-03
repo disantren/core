@@ -165,4 +165,14 @@ class SantriController extends Controller
 
         return redirect()->route('santri.index')->with('success', 'Data santri berhasil diperbarui');
     }
+
+    /**
+     * DESTROY (DELETE) - Soft delete santri
+     */
+    public function destroy(Santri $santri)
+    {
+        $santri->delete(); // Uses SoftDeletes
+
+        return redirect()->back()->with('success', 'Data santri berhasil dihapus');
+    }
 }
